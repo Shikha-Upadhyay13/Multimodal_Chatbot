@@ -22,7 +22,13 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
             {message.text}
           </ReactMarkdown>
         ) : (
-          !isUser && <span className="typing-dot" />
+          !isUser && (
+            <div className="thinking-indicator">
+              <span />
+              <span />
+              <span />
+            </div>
+          )
         )}
       </div>
       {isUser && <div className="avatar avatar-user">You</div>}

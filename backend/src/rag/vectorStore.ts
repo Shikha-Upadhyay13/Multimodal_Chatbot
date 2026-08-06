@@ -1,18 +1,12 @@
-import Database from "better-sqlite3";
-import path from "node:path";
-import fs from "node:fs";
-
-const STORAGE_DIR = path.join(__dirname, "..", "..", "storage");
-if (!fs.existsSync(STORAGE_DIR)) fs.mkdirSync(STORAGE_DIR, { recursive: true });
-
-const db = new Database(path.join(STORAGE_DIR, "db.sqlite"));
-db.pragma("journal_mode = WAL");
+import { db } from "../storage/db";
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS documents (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    uploaded_at INTEGER NOT NULL
+    uploaded_at INTEGER NOT NULL,
+    full_text TEXT NOT NULL,
+    file_path TEXT
   );
   CREATE TABLE IF NOT EXISTS chunks (
     id TEXT PRIMARY KEY,
@@ -27,6 +21,8 @@ export interface DocumentRecord {
   id: string;
   name: string;
   uploadedAt: number;
+  fullText: string;
+  filePath: string | null;
 }
 
 interface ChunkRow {
@@ -68,12 +64,16 @@ function bufferToFloat32Array(buf: Buffer): Float32Array {
   return new Float32Array(buf.buffer, buf.byteOffset, buf.byteLength / Float32Array.BYTES_PER_ELEMENT);
 }
 
-export function insertDocument(doc: DocumentRecord): void {
-  db.prepare("INSERT INTO documents (id, name, uploaded_at) VALUES (?, ?, ?)").run(
-    doc.id,
-    doc.name,
-    doc.uploadedAt,
-  );
+export function insertDocument(doc: {
+  id: string;
+  name: string;
+  uploadedAt: number;
+  fullText: string;
+  filePath: string | null;
+}): void {
+  db.prepare(
+    "INSERT INTO documents (id, name, uploaded_at, full_text, file_path) VALUES (?, ?, ?, ?, ?)",
+  ).run(doc.id, doc.name, doc.uploadedAt, doc.fullText, doc.filePath);
 }
 
 export function insertChunks(
@@ -91,9 +91,20 @@ export function insertChunks(
   insertMany(chunks);
 }
 
-export function listDocuments(): DocumentRecord[] {
-  const rows = db.prepare("SELECT id, name, uploaded_at as uploadedAt FROM documents ORDER BY uploaded_at DESC").all();
-  return rows as DocumentRecord[];
+export function listDocuments(): Array<Omit<DocumentRecord, "fullText" | "filePath">> {
+  const rows = db
+    .prepare("SELECT id, name, uploaded_at as uploadedAt FROM documents ORDER BY uploaded_at DESC")
+    .all();
+  return rows as Array<Omit<DocumentRecord, "fullText" | "filePath">>;
+}
+
+/** Case-insensitive substring match on document name — good enough for a personal-scale library. */
+export function findDocumentByName(name: string): DocumentRecord | undefined {
+  const rows = db.prepare("SELECT id, name, uploaded_at as uploadedAt, full_text as fullText, file_path as filePath FROM documents").all() as DocumentRecord[];
+  const lower = name.toLowerCase();
+  return (
+    rows.find((r) => r.name.toLowerCase() === lower) ?? rows.find((r) => r.name.toLowerCase().includes(lower))
+  );
 }
 
 export function getAllChunks(): LoadedChunk[] {

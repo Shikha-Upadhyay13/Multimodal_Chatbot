@@ -48,7 +48,6 @@
   padding: 0.6rem 0.9rem;
   border-radius: 12px;
   background: #f0f0f0;
-  white-space: pre-wrap;
   word-wrap: break-word;
 }
 
@@ -61,6 +60,28 @@
   margin: 0;
 }
 
+.md-paragraph {
+  margin: 0 0 0.6em;
+}
+
+.md-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+.message-bubble pre {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 0.5rem;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.message-bubble code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
 .tool-badge {
   display: flex;
   align-items: center;
@@ -69,6 +90,16 @@
   font-size: 0.8rem;
   color: #555;
   margin-bottom: 0.4rem;
+}
+
+.download-link {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.message-row.user .download-link {
+  color: white;
 }
 
 .tool-badge-toggle {
@@ -95,6 +126,7 @@
 .tool-badge-result {
   color: #888;
   font-style: italic;
+  white-space: pre-wrap;
 }
 
 .chat-input-row {

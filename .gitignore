@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+.env
+*.log
+
+# generated at runtime, not source
+backend/storage/files/
+backend/storage/*.sqlite
+backend/storage/db.sqlite

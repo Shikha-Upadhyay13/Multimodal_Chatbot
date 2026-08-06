@@ -3,9 +3,12 @@ import type { ChatMessage } from "../../types/chat.types";
 import { ToolCallBadge } from "./ToolCallBadge";
 
 export function MessageBubble({ message }: { message: ChatMessage }) {
+  const isUser = message.role === "user";
+
   return (
     <div className={`message-row ${message.role}`}>
-      <div className="message-bubble">
+      {!isUser && <div className="avatar avatar-assistant">✦</div>}
+      <div className="message-content">
         {message.toolActivity.map((activity, i) => (
           <ToolCallBadge key={`${activity.name}-${i}`} activity={activity} />
         ))}
@@ -19,9 +22,10 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
             {message.text}
           </ReactMarkdown>
         ) : (
-          message.role === "assistant" && <p>...</p>
+          !isUser && <span className="typing-dot" />
         )}
       </div>
+      {isUser && <div className="avatar avatar-user">You</div>}
     </div>
   );
 }

@@ -40,32 +40,42 @@ export function ChatWindow() {
 
   return (
     <div className="chat-window">
-      <UploadedDocsList docs={docs} />
-      <div className="chat-messages">
-        {messages.length === 0 && (
-          <p className="chat-empty">
-            Ask me anything, upload a document and ask about it, or press the mic to talk — try "what time is
-            it?" to see a tool call.
-          </p>
-        )}
-        {messages.map((m) => (
-          <MessageBubble key={m.id} message={m} />
-        ))}
-        <div ref={bottomRef} />
+      <div className="chat-scroll">
+        <div className="chat-column">
+          <UploadedDocsList docs={docs} />
+          {messages.length === 0 ? (
+            <div className="chat-empty">
+              <h1>What can I help with?</h1>
+              <p>Ask anything, upload a document and ask about it, or press the mic to talk.</p>
+            </div>
+          ) : (
+            <div className="chat-messages">
+              {messages.map((m) => (
+                <MessageBubble key={m.id} message={m} />
+              ))}
+              <div ref={bottomRef} />
+            </div>
+          )}
+        </div>
       </div>
-      <form className="chat-input-row" onSubmit={handleSubmit}>
-        <FileUploadButton onUploaded={(doc) => setDocs((prev) => [...prev, doc])} />
-        <VoiceButton onTranscript={(text) => void handleVoiceTranscript(text)} />
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type a message..."
-          disabled={isStreaming}
-        />
-        <button type="submit" disabled={isStreaming || !input.trim()}>
-          Send
-        </button>
-      </form>
+
+      <div className="composer-wrapper">
+        <form className="composer-column" onSubmit={handleSubmit}>
+          <div className="composer-pill">
+            <FileUploadButton onUploaded={(doc) => setDocs((prev) => [...prev, doc])} />
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Message your assistant..."
+              disabled={isStreaming}
+            />
+            <VoiceButton onTranscript={(text) => void handleVoiceTranscript(text)} />
+            <button type="submit" className="send-button" disabled={isStreaming || !input.trim()}>
+              ↑
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

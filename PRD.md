@@ -92,6 +92,8 @@ Single persona: **the builder is the end user.** A developer who wants a private
 | Excel generation/editing | `exceljs` | True load-modify-save |
 | PPTX generation | `pptxgenjs` | Standard free deck-builder |
 | PDF generation/editing | `pdf-lib` | Only free lib that both creates and edits existing PDFs |
+| Whole-document read | `read_document` tool, returns a document's full stored text | Added in Phase 3: `search_documents` only returns top-k relevant chunks, which isn't enough to summarize or faithfully revise a whole document (the read-then-regenerate pattern for Word/PPTX "edits") |
+| Uploaded file persistence | Original upload bytes saved to `storage/files/` at ingestion time, not just parsed text | Added in Phase 3: editing an uploaded Excel/PDF requires its real bytes, which earlier ingestion discarded after parsing |
 | STT | Groq `whisper-large-v3-turbo` | Inspectable real HTTP call, free tier, cross-browser (vs. Chrome-only `SpeechRecognition`) |
 | TTS | Browser `window.speechSynthesis` | Groq TTS is paid-only; browser TTS is free but more robotic — accepted tradeoff |
 

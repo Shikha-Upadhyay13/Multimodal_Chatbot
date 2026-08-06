@@ -7,6 +7,13 @@ import { listDocuments, type UploadedDoc } from "../../api/uploadApi";
 import { VoiceButton } from "../voice/VoiceButton";
 import { useSpeechSynthesis } from "../voice/useSpeechSynthesis";
 
+const SUGGESTIONS = [
+  { icon: "🕒", label: "What time is it?", prompt: "What time is it right now?" },
+  { icon: "🧮", label: "Do some math", prompt: "What is 84 times 37?" },
+  { icon: "📄", label: "Summarize a doc", prompt: "Summarize the document I uploaded in three bullet points." },
+  { icon: "📊", label: "Build a spreadsheet", prompt: "Create an Excel file called budget.xlsx tracking rent, food, and savings for one month." },
+];
+
 export function ChatWindow() {
   const { messages, isStreaming, sendMessage } = useChatStream();
   const [input, setInput] = useState("");
@@ -47,6 +54,19 @@ export function ChatWindow() {
             <div className="chat-empty">
               <h1>What can I help with?</h1>
               <p>Ask anything, upload a document and ask about it, or press the mic to talk.</p>
+              <div className="suggestion-grid">
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s.label}
+                    type="button"
+                    className="suggestion-chip"
+                    onClick={() => void sendMessage(s.prompt)}
+                  >
+                    <span className="suggestion-icon">{s.icon}</span>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
             <div className="chat-messages">

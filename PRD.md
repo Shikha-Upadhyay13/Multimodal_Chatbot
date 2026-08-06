@@ -79,7 +79,7 @@ Single persona: **the builder is the end user.** A developer who wants a private
 
 | Concern | Choice | Why |
 |---|---|---|
-| LLM + tool calling | `groq-sdk`; `llama-3.3-70b-versatile` (chat/tools), `llama-4-scout-17b-16e-instruct` (vision), `whisper-large-v3-turbo` (STT) | OpenAI-compatible API, free tier, tool-calling + vision + STT in one provider |
+| LLM + tool calling | `groq-sdk`; `openai/gpt-oss-120b` (chat/tools), `llama-4-scout-17b-16e-instruct` (vision), `whisper-large-v3-turbo` (STT) | OpenAI-compatible API, free tier, tool-calling + vision + STT in one provider. Switched chat model from `llama-3.3-70b-versatile` after Phase 2 testing showed it intermittently emits a malformed tool-call syntax Groq rejects (`tool_use_failed`); `gpt-oss-120b`'s native tool-calling didn't reproduce this across repeated tests |
 | Agentic loop | Hand-rolled loop in `agent/agentLoop.ts` | No framework — this loop is the core thing being learned |
 | Embeddings | `@huggingface/transformers`, `Xenova/all-MiniLM-L6-v2` (local, ONNX, ~90MB, CPU, no API key) | Groq has no embeddings endpoint; stays inside one `npm install`, no extra service |
 | Vector store | Hand-rolled cosine similarity, persisted via `better-sqlite3` | Readable, fine at personal scale; documented upgrade path to `hnswlib-node`/`sqlite-vec` |

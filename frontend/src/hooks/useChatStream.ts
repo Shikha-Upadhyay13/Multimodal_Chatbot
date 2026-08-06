@@ -29,6 +29,14 @@ export function useChatStream() {
           case "text-delta":
             patchAssistant((m) => ({ ...m, text: m.text + String(evt.data.text ?? "") }));
             break;
+          case "text-revert": {
+            const revertText = String(evt.data.text ?? "");
+            patchAssistant((m) => ({
+              ...m,
+              text: m.text.endsWith(revertText) ? m.text.slice(0, m.text.length - revertText.length) : m.text,
+            }));
+            break;
+          }
           case "tool-call":
             patchAssistant((m) => ({
               ...m,

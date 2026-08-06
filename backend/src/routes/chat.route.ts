@@ -32,6 +32,9 @@ chatRouter.post("/", async (req, res) => {
         case "text-delta":
           send("text-delta", { text: evt.text });
           break;
+        case "text-revert":
+          send("text-revert", { text: evt.text });
+          break;
         case "tool-call":
           send("tool-call", { name: evt.name, args: evt.args });
           break;

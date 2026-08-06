@@ -13,7 +13,7 @@ export interface ChatMessage {
   toolActivity: ToolActivity[];
 }
 
-export type ServerEventName = "text-delta" | "tool-call" | "tool-result" | "done" | "error";
+export type ServerEventName = "text-delta" | "text-revert" | "tool-call" | "tool-result" | "done" | "error";
 
 export interface ServerEvent {
   event: ServerEventName;

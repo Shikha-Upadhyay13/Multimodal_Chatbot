@@ -4,7 +4,6 @@ build/
 .env
 *.log
 
-# generated at runtime, not source
-backend/storage/files/
-backend/storage/*.sqlite
-backend/storage/db.sqlite
+# generated at runtime, not source (SQLite db + WAL files, uploaded/generated files,
+# downloaded OCR language data)
+backend/storage/

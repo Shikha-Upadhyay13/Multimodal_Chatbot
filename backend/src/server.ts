@@ -4,6 +4,7 @@ import { env } from "./config/env";
 import { chatRouter } from "./routes/chat.route";
 import { uploadRouter } from "./routes/upload.route";
 import { documentsRouter } from "./routes/documents.route";
+import { voiceRouter } from "./routes/voice.route";
 import { warmUpEmbedder } from "./rag/embedder";
 
 const app = express();
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use("/api/chat", chatRouter);
 app.use("/api/upload", uploadRouter);
 app.use("/api/documents", documentsRouter);
+app.use("/api/voice", voiceRouter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });

@@ -1,0 +1,116 @@
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: system-ui, sans-serif;
+}
+
+.app-header {
+  padding: 1rem;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.chat-window {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chat-empty {
+  color: #888;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.message-row {
+  display: flex;
+}
+
+.message-row.user {
+  justify-content: flex-end;
+}
+
+.message-bubble {
+  max-width: 75%;
+  padding: 0.6rem 0.9rem;
+  border-radius: 12px;
+  background: #f0f0f0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.message-row.user .message-bubble {
+  background: #2563eb;
+  color: white;
+}
+
+.message-bubble p {
+  margin: 0;
+}
+
+.tool-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: #555;
+  margin-bottom: 0.4rem;
+}
+
+.tool-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f59e0b;
+}
+
+.tool-badge-dot[data-done="true"] {
+  background: #16a34a;
+}
+
+.tool-badge-result {
+  color: #888;
+  font-style: italic;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+.chat-input-row input {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.chat-input-row button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+
+.chat-input-row button:disabled {
+  background: #93b6f0;
+  cursor: default;
+}

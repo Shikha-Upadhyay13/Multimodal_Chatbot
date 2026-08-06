@@ -1,13 +1,30 @@
 import type Groq from "groq-sdk";
 import { utilityTools } from "./utilityTools";
 import { searchDocumentsTool } from "./ragTool";
+import { readDocumentTool } from "./readDocumentTool";
+import { createWordDocTool } from "./docGenTools/createWordDoc.tool";
+import { createExcelDocTool } from "./docGenTools/createExcelDoc.tool";
+import { createPptxDocTool } from "./docGenTools/createPptxDoc.tool";
+import { createPdfDocTool } from "./docGenTools/createPdfDoc.tool";
+import { editExcelDocTool } from "./docGenTools/editExcelDoc.tool";
+import { editPdfDocTool } from "./docGenTools/editPdfDoc.tool";
 
 export interface ToolDefinition {
   schema: Groq.Chat.Completions.ChatCompletionTool;
   run: (args: unknown) => Promise<string>;
 }
 
-const allTools: ToolDefinition[] = [...utilityTools, searchDocumentsTool];
+const allTools: ToolDefinition[] = [
+  ...utilityTools,
+  searchDocumentsTool,
+  readDocumentTool,
+  createWordDocTool,
+  createExcelDocTool,
+  createPptxDocTool,
+  createPdfDocTool,
+  editExcelDocTool,
+  editPdfDocTool,
+];
 
 export const toolSchemas: Groq.Chat.Completions.ChatCompletionTool[] = allTools.map((t) => t.schema);
 

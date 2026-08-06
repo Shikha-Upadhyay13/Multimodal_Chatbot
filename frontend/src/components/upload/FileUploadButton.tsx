@@ -39,7 +39,7 @@ export function FileUploadButton({ onUploaded }: { onUploaded: (doc: UploadedDoc
         disabled={isUploading}
         title="Upload a document (PDF, Word, Excel, PowerPoint, or image)"
       >
-        {isUploading ? "Uploading..." : "+ File"}
+        {isUploading ? "…" : "📎"}
       </button>
       {error && <span className="upload-error">{error}</span>}
     </div>

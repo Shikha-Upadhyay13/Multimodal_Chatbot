@@ -53,7 +53,7 @@ export function VoiceButton({ onTranscript }: { onTranscript: (text: string) => 
     else if (state === "recording") stopRecording();
   };
 
-  const label = state === "recording" ? "Stop" : state === "transcribing" ? "..." : "🎤";
+  const label = state === "recording" ? "⏹" : state === "transcribing" ? "…" : "🎤";
 
   return (
     <div className="voice-control">

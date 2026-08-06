@@ -1,12 +1,13 @@
 import type Groq from "groq-sdk";
 import { utilityTools } from "./utilityTools";
+import { searchDocumentsTool } from "./ragTool";
 
 export interface ToolDefinition {
   schema: Groq.Chat.Completions.ChatCompletionTool;
   run: (args: unknown) => Promise<string>;
 }
 
-const allTools: ToolDefinition[] = [...utilityTools];
+const allTools: ToolDefinition[] = [...utilityTools, searchDocumentsTool];
 
 export const toolSchemas: Groq.Chat.Completions.ChatCompletionTool[] = allTools.map((t) => t.schema);
 

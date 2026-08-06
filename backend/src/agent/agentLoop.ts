@@ -7,6 +7,7 @@ type Message = Groq.Chat.Completions.ChatCompletionMessageParam;
 
 export type AgentEvent =
   | { type: "text-delta"; text: string }
+  | { type: "text-revert"; text: string }
   | { type: "tool-call"; name: string; args: string }
   | { type: "tool-result"; name: string; result: string }
   | { type: "done" };
@@ -32,6 +33,11 @@ export async function runAgentLoop(
       messages: history,
       tools: toolSchemas,
       tool_choice: "auto",
+      // Forced off: this model's parallel (multi tool call in one turn) generation is
+      // unreliable on Groq and intermittently returns a "Failed to call a function" API
+      // error. Single-tool-per-turn still resolves multi-tool requests, just over more
+      // loop iterations.
+      parallel_tool_calls: false,
       stream: true,
     });
 
@@ -44,6 +50,10 @@ export async function runAgentLoop(
       if (!choice) continue;
       const delta = choice.delta;
 
+      // Streamed live as it arrives. If this round turns out to end in a tool call rather
+      // than a final answer, a "text-revert" below tells the client to retract it — some
+      // models emit chatter alongside a tool call (e.g. "Let me check that...") before the
+      // tool result is even known, and that isn't part of the real final answer.
       if (delta?.content) {
         assistantText += delta.content;
         onEvent({ type: "text-delta", text: delta.content });
@@ -62,6 +72,11 @@ export async function runAgentLoop(
 
     if (finishReason === "tool_calls" && toolCallAcc.size > 0) {
       const toolCalls = [...toolCallAcc.entries()].sort(([a], [b]) => a - b).map(([, tc]) => tc);
+
+      // Kept in history for the model's own context, but retracted from what the user sees
+      // (see comment above) since it already streamed live before we knew this round would
+      // end in a tool call rather than a final answer.
+      if (assistantText) onEvent({ type: "text-revert", text: assistantText });
 
       const assistantMessage: Message = {
         role: "assistant",

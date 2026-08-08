@@ -10,5 +10,3 @@ services:
     envVars:
       - key: GROQ_API_KEY
         sync: false
-      - key: NODE_ENV
-        value: production

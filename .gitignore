@@ -4,6 +4,9 @@ build/
 .env
 *.log
 
+# kept locally for reference, not published (public repo)
+PRD.md
+
 # generated at runtime, not source (SQLite db + WAL files, uploaded/generated files,
 # downloaded OCR language data)
 backend/storage/

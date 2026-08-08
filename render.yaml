@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: multimodal-chatbot
+    runtime: node
+    plan: free
+    branch: master
+    buildCommand: cd frontend && npm install && npm run build && cd ../backend && npm install && npm run build
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production

@@ -181,6 +181,24 @@
   border-top: 1px solid var(--border);
 }
 
+.profile-identity {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 8px;
+  min-width: 0;
+  transition: background 0.15s ease;
+}
+
+.profile-identity:hover {
+  background: var(--overlay-weak);
+}
+
 .profile-avatar {
   width: 28px;
   height: 28px;
@@ -196,29 +214,12 @@
 }
 
 .profile-name {
-  flex: 1;
-  background: none;
-  border: none;
   color: var(--text-primary);
   font-size: 0.85rem;
   text-align: left;
-  cursor: pointer;
-  padding: 0.2rem 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.profile-name-input {
-  flex: 1;
-  background: var(--overlay-weak);
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  padding: 0.2rem 0.4rem;
-  outline: none;
-  min-width: 0;
 }
 
 .settings-button {
@@ -242,57 +243,101 @@
   transform: scale(1.06) rotate(20deg);
 }
 
-/* ---------- Settings panel ---------- */
+/* ---------- Settings panel (big two-pane modal, ChatGPT-style) ---------- */
 
 .settings-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 50;
   animation: fadeIn 0.15s ease both;
+  padding: 3vh 3vw;
 }
 
 .settings-panel {
-  width: 420px;
-  max-width: 90vw;
+  width: min(1000px, 100%);
+  height: min(680px, 100%);
+  display: grid;
+  grid-template-columns: 220px 1fr;
   background: var(--bg-main);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 1.2rem;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   animation: fadeInUp 0.2s ease both;
-}
-
-.settings-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-}
-
-.settings-header h2 {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  position: relative;
+  overflow: hidden;
 }
 
 .settings-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
   border: none;
   background: none;
   color: var(--text-muted);
   cursor: pointer;
   font-size: 1rem;
-  padding: 0.2rem;
+  padding: 0.3rem;
   border-radius: 4px;
   transition: background 0.15s ease, color 0.15s ease;
+  z-index: 1;
 }
 
 .settings-close:hover {
   background: var(--overlay);
+  color: var(--text-primary);
+}
+
+.settings-nav {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  padding: 1.25rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.settings-nav-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0.4rem 0.6rem 1rem;
+}
+
+.settings-nav-item {
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.settings-nav-item:hover {
+  background: var(--overlay-weak);
+  color: var(--text-primary);
+}
+
+.settings-nav-item.active {
+  background: var(--overlay);
+  color: var(--text-primary);
+}
+
+.settings-content {
+  padding: 2rem 2.5rem;
+  overflow-y: auto;
+}
+
+.settings-section-title {
+  margin: 0 0 1rem;
+  font-size: 1.15rem;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
@@ -301,7 +346,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.85rem 0;
+  padding: 0.9rem 0;
   border-top: 1px solid var(--border);
 }
 
@@ -315,7 +360,7 @@
   color: var(--text-muted);
   font-size: 0.78rem;
   margin-top: 0.15rem;
-  max-width: 260px;
+  max-width: 360px;
 }
 
 .settings-toggle {
@@ -360,6 +405,50 @@
 .settings-danger:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+.profile-tab-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #0f766e);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.settings-field-label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin-bottom: 0.4rem;
+}
+
+.profile-tab-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.settings-text-input {
+  flex: 1;
+  background: var(--overlay-weak);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  padding: 0.5rem 0.7rem;
+  outline: none;
+  min-width: 0;
+  transition: border-color 0.15s ease;
+}
+
+.settings-text-input:focus {
+  border-color: var(--border-strong);
 }
 
 /* ---------- Chat window ---------- */

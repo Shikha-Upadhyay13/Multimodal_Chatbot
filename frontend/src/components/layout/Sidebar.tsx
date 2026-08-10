@@ -3,6 +3,7 @@ import type { ConversationMeta } from "../../types/conversation.types";
 import { ConversationList } from "./ConversationList";
 import { ProfileSection } from "./ProfileSection";
 import { SettingsPanel } from "./SettingsPanel";
+import { loadSettings } from "../../utils/settingsStore";
 
 interface SidebarProps {
   conversations: ConversationMeta[];
@@ -13,7 +14,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ conversations, activeId, onNewChat, onSelectConversation, onDeleteConversation }: SidebarProps) {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<"general" | "profile" | null>(null);
+  const [profileName, setProfileName] = useState(() => loadSettings().profileName);
 
   return (
     <aside className="sidebar">
@@ -29,9 +31,16 @@ export function Sidebar({ conversations, activeId, onNewChat, onSelectConversati
         onDelete={onDeleteConversation}
       />
 
-      <ProfileSection onOpenSettings={() => setIsSettingsOpen(true)} />
+      <ProfileSection profileName={profileName} onOpenSettings={setSettingsTab} />
 
-      {isSettingsOpen && <SettingsPanel onClose={() => setIsSettingsOpen(false)} />}
+      {settingsTab && (
+        <SettingsPanel
+          initialTab={settingsTab}
+          profileName={profileName}
+          onProfileNameChange={setProfileName}
+          onClose={() => setSettingsTab(null)}
+        />
+      )}
     </aside>
   );
 }

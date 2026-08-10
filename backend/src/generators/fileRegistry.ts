@@ -54,3 +54,13 @@ export function getGeneratedFile(id: string): (GeneratedFile & { buffer: Buffer 
 
   return { ...row, buffer: fs.readFileSync(filePath) };
 }
+
+/** Wipes every generated document — both the registry rows and the files on disk. */
+export function clearAllGeneratedFiles(): void {
+  const rows = db.prepare("SELECT id FROM generated_files").all() as Array<{ id: string }>;
+  for (const row of rows) {
+    const filePath = path.join(FILES_DIR, row.id);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  }
+  db.exec("DELETE FROM generated_files;");
+}

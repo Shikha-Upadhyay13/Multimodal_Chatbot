@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { db } from "../storage/db";
 
 db.exec(`
@@ -109,4 +110,19 @@ export function findDocumentByName(name: string): DocumentRecord | undefined {
 
 export function getAllChunks(): LoadedChunk[] {
   return cache;
+}
+
+/** Wipes all uploaded documents/chunks — both the SQLite rows and the original files on
+ *  disk, and the in-memory search cache (easy to miss: leaving it stale would keep
+ *  returning "deleted" chunks from search until the next server restart). */
+export function clearAll(): void {
+  const rows = db.prepare("SELECT file_path as filePath FROM documents").all() as Array<{
+    filePath: string | null;
+  }>;
+  for (const row of rows) {
+    if (row.filePath && fs.existsSync(row.filePath)) fs.unlinkSync(row.filePath);
+  }
+
+  db.exec("DELETE FROM chunks; DELETE FROM documents;");
+  cache = [];
 }

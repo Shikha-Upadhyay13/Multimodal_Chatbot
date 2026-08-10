@@ -17,3 +17,8 @@ export function getHistory(sessionId: string): Message[] {
 export function appendMessages(sessionId: string, messages: Message[]): void {
   getHistory(sessionId).push(...messages);
 }
+
+/** Called when a conversation is deleted, so its history doesn't linger in memory for the life of the process. */
+export function deleteHistory(sessionId: string): void {
+  sessions.delete(sessionId);
+}

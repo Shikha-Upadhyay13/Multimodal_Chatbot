@@ -6,6 +6,9 @@ import { UploadedDocsList } from "../upload/UploadedDocsList";
 import { listDocuments, type UploadedDoc } from "../../api/uploadApi";
 import { VoiceButton } from "../voice/VoiceButton";
 import { useSpeechSynthesis } from "../voice/useSpeechSynthesis";
+import { generateTitle } from "../../api/chatApi";
+import { loadSettings } from "../../utils/settingsStore";
+import type { ChatMessage } from "../../types/chat.types";
 
 const SUGGESTIONS = [
   { icon: "🕒", label: "What time is it?", prompt: "What time is it right now?" },
@@ -14,8 +17,15 @@ const SUGGESTIONS = [
   { icon: "📊", label: "Build a spreadsheet", prompt: "Create an Excel file called budget.xlsx tracking rent, food, and savings for one month." },
 ];
 
-export function ChatWindow() {
-  const { messages, isStreaming, sendMessage } = useChatStream();
+interface ChatWindowProps {
+  conversationId: string;
+  initialMessages: ChatMessage[];
+  onTitleGenerated: (title: string) => void;
+  onTurnComplete: (messages: ChatMessage[]) => void;
+}
+
+export function ChatWindow({ conversationId, initialMessages, onTitleGenerated, onTurnComplete }: ChatWindowProps) {
+  const { messages, isStreaming, sendMessage } = useChatStream(conversationId, initialMessages, onTurnComplete);
   const [input, setInput] = useState("");
   const [docs, setDocs] = useState<UploadedDoc[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -31,18 +41,33 @@ export function ChatWindow() {
       .catch(() => {});
   }, []);
 
+  /** Wraps sendMessage so a conversation's very first exchange also triggers a title,
+   *  regardless of whether it was typed, voice, or a suggestion chip. */
+  const send = async (text: string): Promise<string> => {
+    const wasFirstTurn = messages.length === 0;
+    const finalText = await sendMessage(text);
+
+    if (wasFirstTurn) {
+      generateTitle(text, finalText)
+        .then(onTitleGenerated)
+        .catch(() => onTitleGenerated(text.length > 40 ? `${text.slice(0, 40)}…` : text));
+    }
+
+    return finalText;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const text = input.trim();
     if (!text || isStreaming) return;
     setInput("");
-    void sendMessage(text);
+    void send(text);
   };
 
   const handleVoiceTranscript = async (text: string) => {
     if (isStreaming) return;
-    const finalText = await sendMessage(text);
-    speak(finalText);
+    const finalText = await send(text);
+    if (loadSettings().autoSpeakVoiceReplies) speak(finalText);
   };
 
   return (
@@ -56,12 +81,7 @@ export function ChatWindow() {
               <p>Ask anything, upload a document and ask about it, or press the mic to talk.</p>
               <div className="suggestion-grid">
                 {SUGGESTIONS.map((s) => (
-                  <button
-                    key={s.label}
-                    type="button"
-                    className="suggestion-chip"
-                    onClick={() => void sendMessage(s.prompt)}
-                  >
+                  <button key={s.label} type="button" className="suggestion-chip" onClick={() => void send(s.prompt)}>
                     <span className="suggestion-icon">{s.icon}</span>
                     {s.label}
                   </button>

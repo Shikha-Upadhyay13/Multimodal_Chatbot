@@ -1,5 +1,5 @@
 :root {
-  color-scheme: dark;
+  color-scheme: dark light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -8,7 +8,7 @@
 
 body {
   margin: 0;
-  background: #171717;
+  background: var(--bg-sidebar);
 }
 
 #root {

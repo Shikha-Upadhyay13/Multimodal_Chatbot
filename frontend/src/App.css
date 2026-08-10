@@ -7,9 +7,31 @@
   --text-primary: #ececec;
   --text-muted: #9b9ba3;
   --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --overlay-weak: rgba(255, 255, 255, 0.035);
+  --overlay: rgba(255, 255, 255, 0.08);
+  --overlay-strong: rgba(255, 255, 255, 0.12);
   --accent: #7c6cf6;
   --accent-hover: #8f81ff;
   --danger: #e5484d;
+}
+
+:root[data-theme="light"] {
+  --bg-sidebar: #f7f7f8;
+  --bg-main: #ffffff;
+  --bg-composer: #f0f0f2;
+  --bg-bubble-user: #e7e7ec;
+  --bg-chip: #eeeef1;
+  --text-primary: #1f1f24;
+  --text-muted: #6b6b76;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.18);
+  --overlay-weak: rgba(0, 0, 0, 0.035);
+  --overlay: rgba(0, 0, 0, 0.055);
+  --overlay-strong: rgba(0, 0, 0, 0.12);
+  --accent: #6d5bf0;
+  --accent-hover: #5b48e0;
+  --danger: #dc2626;
 }
 
 * {
@@ -73,8 +95,8 @@
 }
 
 .new-chat-button:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: var(--overlay);
+  border-color: var(--border-strong);
 }
 
 .new-chat-button:active {
@@ -85,12 +107,259 @@
   font-size: 1rem;
 }
 
-.sidebar-footer {
-  margin-top: auto;
-  font-size: 0.7rem;
+/* ---------- Conversation list ---------- */
+
+.conversation-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.conversation-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  cursor: pointer;
   color: var(--text-muted);
-  padding: 0.5rem;
-  line-height: 1.4;
+  font-size: 0.85rem;
+  animation: fadeIn 0.25s ease both;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.conversation-item:hover {
+  background: var(--overlay-weak);
+  color: var(--text-primary);
+}
+
+.conversation-item.active {
+  background: var(--overlay);
+  color: var(--text-primary);
+}
+
+.conversation-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-delete {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  opacity: 0;
+  flex-shrink: 0;
+  padding: 0.15rem;
+  border-radius: 4px;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.conversation-item:hover .conversation-delete {
+  opacity: 1;
+}
+
+.conversation-delete:hover {
+  background: var(--overlay);
+  color: var(--danger);
+}
+
+/* ---------- Profile section ---------- */
+
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.5rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.profile-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #4f46e5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.profile-name {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  padding: 0.2rem 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-name-input {
+  flex: 1;
+  background: var(--overlay-weak);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  padding: 0.2rem 0.4rem;
+  outline: none;
+  min-width: 0;
+}
+
+.settings-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, transform 0.1s ease, color 0.15s ease;
+}
+
+.settings-button:hover {
+  background: var(--overlay);
+  color: var(--text-primary);
+  transform: scale(1.06) rotate(20deg);
+}
+
+/* ---------- Settings panel ---------- */
+
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  animation: fadeIn 0.15s ease both;
+}
+
+.settings-panel {
+  width: 420px;
+  max-width: 90vw;
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.2rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  animation: fadeInUp 0.2s ease both;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.settings-close {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.2rem;
+  border-radius: 4px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.settings-close:hover {
+  background: var(--overlay);
+  color: var(--text-primary);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.settings-label {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.settings-description {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin-top: 0.15rem;
+  max-width: 260px;
+}
+
+.settings-toggle {
+  flex-shrink: 0;
+  background: var(--overlay-weak);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.settings-toggle:hover {
+  border-color: var(--border-strong);
+}
+
+.settings-toggle[data-on="true"] {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.settings-danger {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.settings-danger:hover:not(:disabled) {
+  background: var(--danger);
+  color: white;
+}
+
+.settings-danger:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 /* ---------- Chat window ---------- */
@@ -162,7 +431,7 @@
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--overlay-weak);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 0.7rem 0.9rem;
@@ -174,8 +443,8 @@
 }
 
 .suggestion-chip:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--overlay);
+  border-color: var(--border-strong);
   transform: translateY(-1px);
 }
 
@@ -261,7 +530,7 @@
 }
 
 .message-content code {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--overlay);
   padding: 0.1em 0.35em;
   border-radius: 4px;
   font-size: 0.9em;
@@ -316,7 +585,7 @@
   font-size: 0.78rem;
   color: var(--text-muted);
   margin-bottom: 0.5rem;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--overlay-weak);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.4rem 0.6rem;
@@ -380,7 +649,7 @@
 }
 
 .doc-chip:hover {
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: var(--border-strong);
 }
 
 /* ---------- Composer ---------- */
@@ -455,7 +724,7 @@
 }
 
 .send-button:disabled {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--overlay);
   color: var(--text-muted);
   cursor: default;
 }
@@ -484,7 +753,7 @@
 }
 
 .upload-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--overlay);
   transform: scale(1.06);
 }
 
@@ -527,7 +796,7 @@
 }
 
 .voice-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--overlay);
   transform: scale(1.06);
 }
 
@@ -555,6 +824,6 @@
 }
 
 .chat-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--overlay-strong);
   border-radius: 4px;
 }

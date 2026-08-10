@@ -11,8 +11,8 @@
   --overlay-weak: rgba(255, 255, 255, 0.035);
   --overlay: rgba(255, 255, 255, 0.08);
   --overlay-strong: rgba(255, 255, 255, 0.12);
-  --accent: #7c6cf6;
-  --accent-hover: #8f81ff;
+  --accent: #14b8a6;
+  --accent-hover: #2dd4bf;
   --danger: #e5484d;
 }
 
@@ -29,8 +29,8 @@
   --overlay-weak: rgba(0, 0, 0, 0.035);
   --overlay: rgba(0, 0, 0, 0.055);
   --overlay-strong: rgba(0, 0, 0, 0.12);
-  --accent: #6d5bf0;
-  --accent-hover: #5b48e0;
+  --accent: #0d9488;
+  --accent-hover: #0f766e;
   --danger: #dc2626;
 }
 
@@ -185,7 +185,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #4f46e5);
+  background: linear-gradient(135deg, var(--accent), #0f766e);
   color: white;
   display: flex;
   align-items: center;
@@ -370,8 +370,8 @@
   flex-direction: column;
   min-width: 0;
   background:
-    radial-gradient(ellipse 900px 500px at 20% -10%, rgba(124, 108, 246, 0.12), transparent 60%),
-    radial-gradient(ellipse 700px 400px at 100% 0%, rgba(79, 70, 229, 0.08), transparent 55%),
+    radial-gradient(ellipse 900px 500px at 20% -10%, rgba(20, 184, 166, 0.1), transparent 60%),
+    radial-gradient(ellipse 700px 400px at 100% 0%, rgba(15, 118, 110, 0.08), transparent 55%),
     var(--bg-main);
   position: relative;
 }
@@ -488,7 +488,7 @@
 }
 
 .avatar-assistant {
-  background: linear-gradient(135deg, var(--accent), #4f46e5);
+  background: linear-gradient(135deg, var(--accent), #0f766e);
   color: white;
 }
 
@@ -679,8 +679,8 @@
 }
 
 .composer-pill:focus-within {
-  border-color: rgba(124, 108, 246, 0.6);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(124, 108, 246, 0.15);
+  border-color: rgba(20, 184, 166, 0.6);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(20, 184, 166, 0.15);
 }
 
 .composer-pill input {

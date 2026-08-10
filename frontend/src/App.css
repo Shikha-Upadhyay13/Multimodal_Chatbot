@@ -272,23 +272,23 @@
 }
 
 .settings-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
+  width: 32px;
+  height: 32px;
   border: none;
-  background: none;
-  color: var(--text-muted);
+  background: var(--overlay);
+  color: var(--text-primary);
   cursor: pointer;
-  font-size: 1rem;
-  padding: 0.3rem;
-  border-radius: 4px;
-  transition: background 0.15s ease, color 0.15s ease;
-  z-index: 1;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
 }
 
 .settings-close:hover {
-  background: var(--overlay);
-  color: var(--text-primary);
+  background: var(--overlay-strong);
 }
 
 .settings-nav {
@@ -300,14 +300,10 @@
   gap: 0.15rem;
 }
 
-.settings-nav-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  padding: 0.4rem 0.6rem 1rem;
-}
-
 .settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
   text-align: left;
   background: none;
   border: none;
@@ -317,6 +313,13 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
+}
+
+.settings-nav-icon {
+  font-size: 0.95rem;
+  width: 1.1rem;
+  flex-shrink: 0;
+  text-align: center;
 }
 
 .settings-nav-item:hover {
@@ -379,10 +382,36 @@
   border-color: var(--border-strong);
 }
 
-.settings-toggle[data-on="true"] {
-  background: var(--accent);
-  color: white;
-  border-color: var(--accent);
+.settings-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.settings-select-wrap::after {
+  content: "▾";
+  position: absolute;
+  right: 0.7rem;
+  color: var(--text-muted);
+  pointer-events: none;
+  font-size: 0.65rem;
+}
+
+.settings-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--overlay-weak);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  padding: 0.4rem 1.9rem 0.4rem 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.settings-select:hover {
+  border-color: var(--border-strong);
 }
 
 .settings-danger {

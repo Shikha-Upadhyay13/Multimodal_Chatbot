@@ -20,25 +20,23 @@ export function SettingsPanel({ initialTab, profileName, onProfileNameChange, on
   return (
     <div className="settings-overlay" onClick={onClose}>
       <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="settings-close" onClick={onClose}>
-          ✕
-        </button>
-
         <nav className="settings-nav">
-          <div className="settings-nav-title">Settings</div>
+          <button type="button" className="settings-close" onClick={onClose}>
+            ✕
+          </button>
           <button
             type="button"
             className={`settings-nav-item ${tab === "general" ? "active" : ""}`}
             onClick={() => setTab("general")}
           >
-            General
+            <span className="settings-nav-icon">⚙</span> General
           </button>
           <button
             type="button"
             className={`settings-nav-item ${tab === "profile" ? "active" : ""}`}
             onClick={() => setTab("profile")}
           >
-            Profile
+            <span className="settings-nav-icon">👤</span> Profile
           </button>
         </nav>
 
@@ -54,13 +52,35 @@ export function SettingsPanel({ initialTab, profileName, onProfileNameChange, on
   );
 }
 
+function Select({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+}) {
+  return (
+    <div className="settings-select-wrap">
+      <select className="settings-select" value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 function GeneralTab() {
   const { theme, toggleTheme } = useTheme();
   const [autoSpeak, setAutoSpeak] = useState(() => loadSettings().autoSpeakVoiceReplies);
   const [isClearing, setIsClearing] = useState(false);
 
-  const toggleAutoSpeak = () => {
-    const next = !autoSpeak;
+  const setAutoSpeakValue = (value: string) => {
+    const next = value === "on";
     setAutoSpeak(next);
     saveSettings({ ...loadSettings(), autoSpeakVoiceReplies: next });
   };
@@ -86,23 +106,29 @@ function GeneralTab() {
       <h3 className="settings-section-title">General</h3>
 
       <div className="settings-row">
-        <div>
-          <div className="settings-label">Theme</div>
-          <div className="settings-description">Switch between dark and light mode.</div>
-        </div>
-        <button type="button" className="settings-toggle" onClick={toggleTheme}>
-          {theme === "dark" ? "🌙 Dark" : "☀️ Light"}
-        </button>
+        <div className="settings-label">Theme</div>
+        <Select
+          value={theme}
+          onChange={(v) => {
+            if (v !== theme) toggleTheme();
+          }}
+          options={[
+            { value: "dark", label: "Dark" },
+            { value: "light", label: "Light" },
+          ]}
+        />
       </div>
 
       <div className="settings-row">
-        <div>
-          <div className="settings-label">Auto-speak voice replies</div>
-          <div className="settings-description">Read the assistant's answer aloud after a voice message.</div>
-        </div>
-        <button type="button" className="settings-toggle" data-on={autoSpeak} onClick={toggleAutoSpeak}>
-          {autoSpeak ? "On" : "Off"}
-        </button>
+        <div className="settings-label">Auto-speak voice replies</div>
+        <Select
+          value={autoSpeak ? "on" : "off"}
+          onChange={setAutoSpeakValue}
+          options={[
+            { value: "on", label: "On" },
+            { value: "off", label: "Off" },
+          ]}
+        />
       </div>
 
       <div className="settings-row">

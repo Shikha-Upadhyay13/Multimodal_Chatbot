@@ -890,6 +890,46 @@
   max-width: 160px;
 }
 
+.upload-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--overlay-strong);
+  border-top-color: var(--accent);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.upload-check {
+  color: #22c55e;
+  font-size: 1rem;
+  font-weight: 700;
+  animation: pop 0.25s ease;
+}
+
+.upload-x {
+  color: var(--danger);
+  font-size: 0.9rem;
+  font-weight: 700;
+  animation: pop 0.25s ease;
+}
+
+@keyframes pop {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.upload-button[data-status="success"] {
+  border-color: #22c55e;
+}
+
+.upload-button[data-status="error"] {
+  border-color: var(--danger);
+}
+
 /* ---------- Voice control ---------- */
 
 .voice-control {

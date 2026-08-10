@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
 import { uploadDocument, type UploadedDoc } from "../../api/uploadApi";
 
+type Status = "idle" | "uploading" | "success" | "error";
+
 export function FileUploadButton({ onUploaded }: { onUploaded: (doc: UploadedDoc) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -11,15 +13,17 @@ export function FileUploadButton({ onUploaded }: { onUploaded: (doc: UploadedDoc
     e.target.value = ""; // allow re-selecting the same file later
     if (!file) return;
 
-    setIsUploading(true);
+    setStatus("uploading");
     setError(null);
     try {
       const doc = await uploadDocument(file);
       onUploaded(doc);
+      setStatus("success");
+      setTimeout(() => setStatus("idle"), 1800);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsUploading(false);
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 1800);
     }
   };
 
@@ -35,13 +39,17 @@ export function FileUploadButton({ onUploaded }: { onUploaded: (doc: UploadedDoc
       <button
         type="button"
         className="upload-button"
+        data-status={status}
         onClick={() => inputRef.current?.click()}
-        disabled={isUploading}
+        disabled={status === "uploading"}
         title="Upload a document (PDF, Word, Excel, PowerPoint, or image)"
       >
-        {isUploading ? "…" : "📎"}
+        {status === "uploading" && <span className="upload-spinner" />}
+        {status === "success" && <span className="upload-check">✓</span>}
+        {status === "error" && <span className="upload-x">✕</span>}
+        {status === "idle" && "📎"}
       </button>
-      {error && <span className="upload-error">{error}</span>}
+      {error && status === "error" && <span className="upload-error">{error}</span>}
     </div>
   );
 }

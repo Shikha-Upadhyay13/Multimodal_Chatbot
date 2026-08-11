@@ -72,6 +72,25 @@ export function streamProjectChat(projectId: string, conversationId: string, mes
   return streamSSEPost(`${API_BASE}/api/projects/${projectId}/conversations/${conversationId}/messages`, { message });
 }
 
+/** Pure GET stream — used with a native EventSource so any participant in a shared
+ *  project can watch someone else's turn live, not just whoever sent the message. */
+export function getConversationStreamUrl(projectId: string, conversationId: string): string {
+  return `${API_BASE}/api/projects/${projectId}/conversations/${conversationId}/stream`;
+}
+
+export async function postTypingStatus(
+  projectId: string,
+  conversationId: string,
+  participantId: string,
+  isTyping: boolean,
+): Promise<void> {
+  await fetch(`${API_BASE}/api/projects/${projectId}/conversations/${conversationId}/typing`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ participantId, isTyping }),
+  });
+}
+
 export async function uploadProjectDocument(projectId: string, file: File): Promise<UploadedDoc> {
   const formData = new FormData();
   formData.append("file", file);

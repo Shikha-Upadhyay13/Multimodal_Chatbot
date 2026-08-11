@@ -15,8 +15,10 @@ import {
 import { sessionFor, getRawMessages } from "../projects/projectMessageStore";
 import { reconstructDisplayMessages } from "../projects/reconstructMessages";
 import { runExclusive } from "../projects/conversationLock";
-import { runAgentLoop } from "../agent/agentLoop";
-import { setSSEHeaders, createSSEEventHandler, sendSSEError } from "../agent/sseChatHandler";
+import { runAgentLoop, type AgentEvent } from "../agent/agentLoop";
+import { setSSEHeaders, writeSSEEvent, toSSEFrame, sendSSEError } from "../agent/sseChatHandler";
+import * as turnBroadcast from "../projects/turnBroadcast";
+import { setTyping } from "../projects/typingTracker";
 import { ingestFile } from "../rag/ingest";
 import { listDocuments } from "../rag/vectorStore";
 import { UnsupportedFileTypeError } from "../parsers";
@@ -125,7 +127,12 @@ projectsRouter.post("/:id/conversations/:cid/messages", async (req, res) => {
   }
 
   setSSEHeaders(res);
-  const onEvent = createSSEEventHandler(res);
+  turnBroadcast.startTurn(conversation.id, parsed.data.message);
+  const onEvent = (evt: AgentEvent) => {
+    const frame = toSSEFrame(evt);
+    writeSSEEvent(res, frame.event, frame.data);
+    turnBroadcast.publish(conversation.id, frame);
+  };
 
   try {
     await runExclusive(conversation.id, () =>
@@ -134,9 +141,55 @@ projectsRouter.post("/:id/conversations/:cid/messages", async (req, res) => {
     touchProjectConversation(conversation.id);
   } catch (err) {
     sendSSEError(res, err);
+    turnBroadcast.publish(conversation.id, {
+      event: "error",
+      data: { message: err instanceof Error ? err.message : String(err) },
+    });
   } finally {
+    turnBroadcast.endTurn(conversation.id);
     res.end();
   }
+});
+
+/** Pure SSE subscribe endpoint — no request body, so the frontend can use a plain native
+ *  EventSource here (unlike the POST chat-turn route above, which needs a hand-rolled
+ *  fetch+ReadableStream reader since EventSource can't POST). Lets every participant in a
+ *  shared project watch someone else's turn stream in live, not just the sender. */
+projectsRouter.get("/:id/conversations/:cid/stream", (req, res) => {
+  const project = requireProject(req.params.id, res);
+  if (!project) return;
+  const conversation = requireProjectConversation(project.id, req.params.cid, res);
+  if (!conversation) return;
+
+  setSSEHeaders(res);
+
+  const active = turnBroadcast.getActiveTurn(conversation.id);
+  if (active) {
+    for (const frame of active.buffer) writeSSEEvent(res, frame.event, frame.data);
+  }
+
+  const unsubscribe = turnBroadcast.subscribe(conversation.id, (frame) => {
+    writeSSEEvent(res, frame.event, frame.data);
+  });
+  req.on("close", unsubscribe);
+});
+
+const typingSchema = z.object({ participantId: z.string().min(1), isTyping: z.boolean() });
+
+projectsRouter.post("/:id/conversations/:cid/typing", (req, res) => {
+  const project = requireProject(req.params.id, res);
+  if (!project) return;
+  const conversation = requireProjectConversation(project.id, req.params.cid, res);
+  if (!conversation) return;
+
+  const parsed = typingSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.flatten() });
+    return;
+  }
+
+  setTyping(conversation.id, parsed.data.participantId, parsed.data.isTyping);
+  res.status(204).end();
 });
 
 projectsRouter.patch("/:id/conversations/:cid", (req, res) => {

@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import type { ChatMessage, ServerEvent } from "../types/chat.types";
+import { applyServerEvent } from "./chatEventReducer";
 
 function newId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -44,62 +45,9 @@ export function useChatStream(
 
       try {
         for await (const evt of streamFn(text)) {
-          switch (evt.event) {
-            case "text-delta": {
-              const delta = String(evt.data.text ?? "");
-              finalText += delta;
-              patchAssistant((m) => ({ ...m, text: m.text + delta }));
-              break;
-            }
-            case "text-revert": {
-              const revertText = String(evt.data.text ?? "");
-              const round = Number(evt.data.round ?? 0);
-              if (finalText.endsWith(revertText)) {
-                finalText = finalText.slice(0, finalText.length - revertText.length);
-              }
-              patchAssistant((m) => ({
-                ...m,
-                text: m.text.endsWith(revertText) ? m.text.slice(0, m.text.length - revertText.length) : m.text,
-                reasoningSteps: revertText
-                  ? [...m.reasoningSteps, { kind: "chatter", round, text: revertText }]
-                  : m.reasoningSteps,
-              }));
-              break;
-            }
-            case "tool-call":
-              patchAssistant((m) => ({
-                ...m,
-                reasoningSteps: [
-                  ...m.reasoningSteps,
-                  {
-                    kind: "tool",
-                    round: Number(evt.data.round ?? 0),
-                    id: String(evt.data.id ?? ""),
-                    name: String(evt.data.name),
-                    args: String(evt.data.args ?? ""),
-                  },
-                ],
-              }));
-              break;
-            case "tool-result":
-              patchAssistant((m) => ({
-                ...m,
-                reasoningSteps: m.reasoningSteps.map((s) =>
-                  s.kind === "tool" && s.id === String(evt.data.id ?? "")
-                    ? { ...s, result: String(evt.data.result ?? "") }
-                    : s,
-                ),
-              }));
-              break;
-            case "error": {
-              const errorText = `\n\n[Error: ${String(evt.data.message ?? "unknown")}]`;
-              finalText += errorText;
-              patchAssistant((m) => ({ ...m, text: m.text + errorText }));
-              break;
-            }
-            case "done":
-              break;
-          }
+          const next = applyServerEvent({ message: assistantMessage, finalText }, evt);
+          finalText = next.finalText;
+          patchAssistant(() => next.message);
         }
       } catch (err) {
         const connError = `\n\n[Connection error: ${err instanceof Error ? err.message : String(err)}]`;

@@ -11,7 +11,15 @@ export interface ChatMessage {
   reasoningSteps: ReasoningStep[];
 }
 
-export type ServerEventName = "text-delta" | "text-revert" | "tool-call" | "tool-result" | "done" | "error";
+export type ServerEventName =
+  | "text-delta"
+  | "text-revert"
+  | "tool-call"
+  | "tool-result"
+  | "done"
+  | "error"
+  | "turn-start"
+  | "typing";
 
 export interface ServerEvent {
   event: ServerEventName;

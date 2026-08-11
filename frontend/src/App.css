@@ -1001,6 +1001,21 @@
   word-break: break-word;
 }
 
+/* ---------- Typing indicator (shared projects) ---------- */
+
+.typing-indicator-bar {
+  max-width: 720px;
+  margin: 0 auto 0.5rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  background: var(--overlay-weak);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  width: fit-content;
+  animation: fadeInUp 0.25s ease both;
+}
+
 /* ---------- Uploaded doc chips ---------- */
 
 .doc-chip-row {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useChatStream } from "../../hooks/useChatStream";
 import { MessageBubble } from "./MessageBubble";
 import { FileUploadButton } from "../upload/FileUploadButton";
@@ -28,6 +28,18 @@ interface ChatWindowProps {
   streamFn?: (conversationId: string, text: string) => AsyncGenerator<ServerEvent>;
   uploadFn?: (file: File) => Promise<UploadedDoc>;
   listDocsFn?: () => Promise<UploadedDoc[]>;
+  /** Lets a shared-Project view know when this tab's own turn is in flight, so it can
+   *  avoid also rendering that same turn a second time via the live broadcast view. */
+  onStreamingChange?: (isStreaming: boolean) => void;
+  /** Fires on every input keystroke — used by ProjectView to send debounced typing
+   *  signals to other participants in a shared project. Not used by regular chats. */
+  onComposerActivity?: () => void;
+  /** Appended after the persisted messages — used by ProjectView to render another
+   *  participant's turn while it's still streaming live, inline with the real history. */
+  extraMessages?: ChatMessage[];
+  /** Rendered just above the composer — used by ProjectView for a "someone is typing…"
+   *  banner. Not used by regular chats. */
+  topBanner?: ReactNode;
 }
 
 export function ChatWindow({
@@ -38,6 +50,10 @@ export function ChatWindow({
   streamFn = streamChat,
   uploadFn = uploadDocument,
   listDocsFn = listDocuments,
+  onStreamingChange,
+  onComposerActivity,
+  extraMessages = [],
+  topBanner,
 }: ChatWindowProps) {
   const { messages, isStreaming, sendMessage } = useChatStream(
     (text) => streamFn(conversationId, text),
@@ -51,7 +67,11 @@ export function ChatWindow({
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, extraMessages]);
+
+  useEffect(() => {
+    onStreamingChange?.(isStreaming);
+  }, [isStreaming, onStreamingChange]);
 
   useEffect(() => {
     listDocsFn()
@@ -93,7 +113,7 @@ export function ChatWindow({
       <div className="chat-scroll">
         <div className="chat-column">
           <UploadedDocsList docs={docs} />
-          {messages.length === 0 ? (
+          {messages.length === 0 && extraMessages.length === 0 ? (
             <div className="chat-empty">
               <h1>What can I help with?</h1>
               <p>Ask anything, upload a document and ask about it, or press the mic to talk.</p>
@@ -111,6 +131,9 @@ export function ChatWindow({
               {messages.map((m) => (
                 <MessageBubble key={m.id} message={m} />
               ))}
+              {extraMessages.map((m) => (
+                <MessageBubble key={m.id} message={m} />
+              ))}
               <div ref={bottomRef} />
             </div>
           )}
@@ -118,12 +141,16 @@ export function ChatWindow({
       </div>
 
       <div className="composer-wrapper">
+        {topBanner}
         <form className="composer-column" onSubmit={handleSubmit}>
           <div className="composer-pill">
             <FileUploadButton uploadFn={uploadFn} onUploaded={(doc) => setDocs((prev) => [...prev, doc])} />
             <input
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                onComposerActivity?.();
+              }}
               placeholder="Message your assistant..."
               disabled={isStreaming}
             />

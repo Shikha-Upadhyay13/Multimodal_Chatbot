@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatWindow } from "../components/chat/ChatWindow";
 import { ConversationList } from "../components/layout/ConversationList";
 import type { ProjectMeta, ProjectConversationMeta } from "../types/project.types";
@@ -14,8 +14,10 @@ import {
   uploadProjectDocument,
   listProjectDocuments,
   updateProjectInstructions,
+  postTypingStatus,
 } from "../api/projectsApi";
 import { rememberProject } from "../utils/localProjectsStore";
+import { useRemoteTurnStream } from "../hooks/useRemoteTurnStream";
 
 export function ProjectView({ projectId }: { projectId: string }) {
   const [project, setProject] = useState<ProjectMeta | null>(null);
@@ -26,7 +28,13 @@ export function ProjectView({ projectId }: { projectId: string }) {
   const [copyLabel, setCopyLabel] = useState("Share");
   const [isEditingInstructions, setIsEditingInstructions] = useState(false);
   const [instructionsDraft, setInstructionsDraft] = useState("");
+  const [isLocalStreaming, setIsLocalStreaming] = useState(false);
+  const [historyVersion, setHistoryVersion] = useState(0);
   const hasInitialized = useRef(false);
+  const participantId = useRef(crypto.randomUUID()).current;
+  const typingIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTypingSentAt = useRef(0);
+  const messagesRequestId = useRef(0);
 
   // Load the project + its conversation list once on mount.
   useEffect(() => {
@@ -50,16 +58,60 @@ export function ProjectView({ projectId }: { projectId: string }) {
   }, [projectId]);
 
   // Fetch this conversation's history whenever the active conversation changes.
+  // Guarded by a request id in case activeId changes again before this resolves.
   useEffect(() => {
     if (!activeId) return;
+    const requestId = ++messagesRequestId.current;
     getProjectMessages(projectId, activeId)
-      .then((messages) => setInitialMessages(messages as ChatMessage[]))
-      .catch(() => setInitialMessages([]));
+      .then((messages) => {
+        if (messagesRequestId.current === requestId) setInitialMessages(messages as ChatMessage[]);
+      })
+      .catch(() => {
+        if (messagesRequestId.current === requestId) setInitialMessages([]);
+      });
   }, [projectId, activeId]);
 
   const refreshConversations = () => {
     listProjectConversations(projectId).then(setConversations).catch(() => {});
   };
+
+  // Fired when another participant's turn settles (see useRemoteTurnStream). The fetch
+  // must complete and populate `initialMessages` *before* historyVersion bumps — bumping
+  // first would remount ChatWindow (its key includes historyVersion) with whatever
+  // `initialMessages` still held at that instant, and useChatStream only seeds its state
+  // from that prop once on mount, so an earlier bump would lock in stale (often empty) data.
+  const handleRemoteTurnSettled = useCallback(() => {
+    listProjectConversations(projectId).then(setConversations).catch(() => {});
+    if (!activeId) return;
+    const requestId = ++messagesRequestId.current;
+    getProjectMessages(projectId, activeId)
+      .then((messages) => {
+        if (messagesRequestId.current !== requestId) return;
+        setInitialMessages(messages as ChatMessage[]);
+        setHistoryVersion((v) => v + 1);
+      })
+      .catch(() => {});
+  }, [projectId, activeId]);
+
+  const { remoteUserText, remoteAssistant, isRemoteStreaming, othersTyping } = useRemoteTurnStream(
+    projectId,
+    activeId ?? "",
+    participantId,
+    handleRemoteTurnSettled,
+  );
+
+  const handleComposerActivity = useCallback(() => {
+    if (!activeId) return;
+    const now = Date.now();
+    if (now - lastTypingSentAt.current > 2000) {
+      lastTypingSentAt.current = now;
+      void postTypingStatus(projectId, activeId, participantId, true);
+    }
+    if (typingIdleTimer.current) clearTimeout(typingIdleTimer.current);
+    typingIdleTimer.current = setTimeout(() => {
+      void postTypingStatus(projectId, activeId, participantId, false);
+    }, 3000);
+  }, [projectId, activeId, participantId]);
 
   const handleNewChat = async () => {
     const fresh = await createProjectConversation(projectId);
@@ -173,7 +225,7 @@ export function ProjectView({ projectId }: { projectId: string }) {
       </aside>
 
       <ChatWindow
-        key={activeId}
+        key={`${activeId}-${historyVersion}`}
         conversationId={activeId}
         initialMessages={initialMessages}
         streamFn={(cid, text) => streamProjectChat(projectId, cid, text)}
@@ -183,6 +235,23 @@ export function ProjectView({ projectId }: { projectId: string }) {
           renameProjectConversation(projectId, activeId, title).then(refreshConversations);
         }}
         onTurnComplete={refreshConversations}
+        onStreamingChange={setIsLocalStreaming}
+        onComposerActivity={handleComposerActivity}
+        topBanner={othersTyping ? <div className="typing-indicator-bar">Someone is typing…</div> : null}
+        // Two people sending at once: runExclusive already serializes on the backend, so
+        // this tab's own pending send (isLocalStreaming) takes priority — it does not also
+        // render someone else's concurrent live turn while queued behind it (accepted v1
+        // limitation; see plan notes).
+        extraMessages={
+          isRemoteStreaming && !isLocalStreaming
+            ? [
+                ...(remoteUserText !== null
+                  ? [{ id: "remote-user", role: "user" as const, text: remoteUserText, reasoningSteps: [] }]
+                  : []),
+                ...(remoteAssistant ? [remoteAssistant] : []),
+              ]
+            : []
+        }
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import type { ServerEvent } from "../types/chat.types";
+import type { ServerEvent, ReasoningStep } from "../types/chat.types";
 import type { ProjectMeta, ProjectConversationMeta } from "../types/project.types";
 import type { UploadedDoc } from "./uploadApi";
 import { streamSSEPost } from "./sseStream";
@@ -60,7 +60,7 @@ export interface ProjectDisplayMessage {
   id: string;
   role: "user" | "assistant";
   text: string;
-  toolActivity: Array<{ name: string; args: string; result?: string }>;
+  reasoningSteps: ReasoningStep[];
 }
 
 export async function getProjectMessages(projectId: string, conversationId: string): Promise<ProjectDisplayMessage[]> {

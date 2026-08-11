@@ -5,10 +5,10 @@ import { toolSchemas, runTool, type ToolContext } from "../tools";
 type Message = Groq.Chat.Completions.ChatCompletionMessageParam;
 
 export type AgentEvent =
-  | { type: "text-delta"; text: string }
-  | { type: "text-revert"; text: string }
-  | { type: "tool-call"; name: string; args: string }
-  | { type: "tool-result"; name: string; result: string }
+  | { type: "text-delta"; text: string; round: number }
+  | { type: "text-revert"; text: string; round: number }
+  | { type: "tool-call"; id: string; name: string; args: string; round: number }
+  | { type: "tool-result"; id: string; name: string; result: string; round: number }
   | { type: "done" };
 
 /**
@@ -44,6 +44,7 @@ interface RoundResult {
 async function runRoundWithRetry(
   history: Message[],
   onEvent: (event: AgentEvent) => void,
+  round: number,
 ): Promise<RoundResult> {
   for (let attempt = 0; ; attempt++) {
     let assistantText = "";
@@ -76,7 +77,7 @@ async function runRoundWithRetry(
         // before the tool result is even known, and that isn't part of the real answer.
         if (delta?.content) {
           assistantText += delta.content;
-          onEvent({ type: "text-delta", text: delta.content });
+          onEvent({ type: "text-delta", text: delta.content, round });
           emittedAnyEvent = true;
         }
 
@@ -113,13 +114,13 @@ export async function runAgentLoop(
 
   for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
     const history = session.getHistory();
-    const { assistantText, toolCalls, finishReason } = await runRoundWithRetry(history, onEvent);
+    const { assistantText, toolCalls, finishReason } = await runRoundWithRetry(history, onEvent, iteration);
 
     if (finishReason === "tool_calls" && toolCalls.length > 0) {
       // Kept in history for the model's own context, but retracted from what the user sees
       // (see comment above) since it already streamed live before we knew this round would
       // end in a tool call rather than a final answer.
-      if (assistantText) onEvent({ type: "text-revert", text: assistantText });
+      if (assistantText) onEvent({ type: "text-revert", text: assistantText, round: iteration });
 
       const assistantMessage: Message = {
         role: "assistant",
@@ -133,9 +134,9 @@ export async function runAgentLoop(
       session.appendMessages([assistantMessage]);
 
       for (const tc of toolCalls) {
-        onEvent({ type: "tool-call", name: tc.name, args: tc.args });
+        onEvent({ type: "tool-call", id: tc.id, name: tc.name, args: tc.args, round: iteration });
         const result = await runTool(tc.name, tc.args, session.toolContext);
-        onEvent({ type: "tool-result", name: tc.name, result });
+        onEvent({ type: "tool-result", id: tc.id, name: tc.name, result, round: iteration });
         session.appendMessages([{ role: "tool", tool_call_id: tc.id, content: result }]);
       }
 
@@ -147,6 +148,6 @@ export async function runAgentLoop(
     return;
   }
 
-  onEvent({ type: "text-delta", text: "\n\n[Stopped: too many tool-call iterations]" });
+  onEvent({ type: "text-delta", text: "\n\n[Stopped: too many tool-call iterations]", round: MAX_ITERATIONS });
   onEvent({ type: "done" });
 }

@@ -3,17 +3,15 @@ import { randomUUID } from "node:crypto";
 
 type Message = Groq.Chat.Completions.ChatCompletionMessageParam;
 
-export interface ToolActivity {
-  name: string;
-  args: string;
-  result?: string;
-}
+export type ReasoningStep =
+  | { kind: "chatter"; round: number; text: string }
+  | { kind: "tool"; round: number; id: string; name: string; args: string; result?: string };
 
 export interface DisplayMessage {
   id: string;
   role: "user" | "assistant";
   text: string;
-  toolActivity: ToolActivity[];
+  reasoningSteps: ReasoningStep[];
 }
 
 /**
@@ -24,14 +22,18 @@ export interface DisplayMessage {
  *  - an assistant row with tool_calls never shows its own `content` as answer text — that
  *    text was already retracted live via a "text-revert" event (see agentLoop.ts) before
  *    the tool result was known, so persisting it as visible text here would show the
- *    viewer chatter they never actually saw live.
+ *    viewer chatter they never actually saw live. It's captured as a "chatter" reasoning
+ *    step instead, matching what a live viewer would have seen retracted in real time.
  *  - each tool_calls entry is paired with its later role:"tool" row by tool_call_id to
- *    build one ToolActivity per call.
+ *    build one "tool" reasoning step per call.
+ *  - round is a locally-assigned counter (one per assistant-with-tool_calls row), since
+ *    the raw persisted rows don't carry the live loop's iteration number.
  */
 export function reconstructDisplayMessages(messages: Message[]): DisplayMessage[] {
   const result: DisplayMessage[] = [];
-  let pendingActivity: ToolActivity[] = [];
+  let pendingSteps: ReasoningStep[] = [];
   const pendingIndexByCallId = new Map<string, number>();
+  let round = 0;
 
   for (const message of messages) {
     if (message.role === "system") continue;
@@ -41,17 +43,20 @@ export function reconstructDisplayMessages(messages: Message[]): DisplayMessage[
         id: randomUUID(),
         role: "user",
         text: typeof message.content === "string" ? message.content : "",
-        toolActivity: [],
+        reasoningSteps: [],
       });
       continue;
     }
 
     if (message.role === "assistant") {
       if (message.tool_calls && message.tool_calls.length > 0) {
+        const chatter = typeof message.content === "string" ? message.content : "";
+        if (chatter) pendingSteps.push({ kind: "chatter", round, text: chatter });
         for (const call of message.tool_calls) {
-          pendingIndexByCallId.set(call.id, pendingActivity.length);
-          pendingActivity.push({ name: call.function.name, args: call.function.arguments });
+          pendingIndexByCallId.set(call.id, pendingSteps.length);
+          pendingSteps.push({ kind: "tool", round, id: call.id, name: call.function.name, args: call.function.arguments });
         }
+        round += 1;
         continue; // no display message yet — this round's content (if any) was reverted live
       }
 
@@ -59,20 +64,20 @@ export function reconstructDisplayMessages(messages: Message[]): DisplayMessage[
         id: randomUUID(),
         role: "assistant",
         text: typeof message.content === "string" ? message.content : "",
-        toolActivity: pendingActivity,
+        reasoningSteps: pendingSteps,
       });
-      pendingActivity = [];
+      pendingSteps = [];
       pendingIndexByCallId.clear();
+      round = 0;
       continue;
     }
 
     if (message.role === "tool") {
       const index = pendingIndexByCallId.get(message.tool_call_id);
-      if (index !== undefined) {
-        pendingActivity[index] = {
-          ...pendingActivity[index],
-          result: typeof message.content === "string" ? message.content : "",
-        };
+      if (index === undefined) continue;
+      const step = pendingSteps[index];
+      if (step.kind === "tool") {
+        pendingSteps[index] = { ...step, result: typeof message.content === "string" ? message.content : "" };
       }
     }
   }

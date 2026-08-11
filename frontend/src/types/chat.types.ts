@@ -1,16 +1,14 @@
 export type ChatRole = "user" | "assistant";
 
-export interface ToolActivity {
-  name: string;
-  args?: string;
-  result?: string;
-}
+export type ReasoningStep =
+  | { kind: "chatter"; round: number; text: string }
+  | { kind: "tool"; round: number; id: string; name: string; args: string; result?: string };
 
 export interface ChatMessage {
   id: string;
   role: ChatRole;
   text: string;
-  toolActivity: ToolActivity[];
+  reasoningSteps: ReasoningStep[];
 }
 
 export type ServerEventName = "text-delta" | "text-revert" | "tool-call" | "tool-result" | "done" | "error";

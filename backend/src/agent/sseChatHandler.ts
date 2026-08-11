@@ -18,16 +18,16 @@ export function createSSEEventHandler(res: Response): (evt: AgentEvent) => void 
   return (evt) => {
     switch (evt.type) {
       case "text-delta":
-        send("text-delta", { text: evt.text });
+        send("text-delta", { text: evt.text, round: evt.round });
         break;
       case "text-revert":
-        send("text-revert", { text: evt.text });
+        send("text-revert", { text: evt.text, round: evt.round });
         break;
       case "tool-call":
-        send("tool-call", { name: evt.name, args: evt.args });
+        send("tool-call", { id: evt.id, name: evt.name, args: evt.args, round: evt.round });
         break;
       case "tool-result":
-        send("tool-result", { name: evt.name, result: evt.result });
+        send("tool-result", { id: evt.id, name: evt.name, result: evt.result, round: evt.round });
         break;
       case "done":
         send("done", {});

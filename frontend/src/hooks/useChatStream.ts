@@ -28,8 +28,8 @@ export function useChatStream(
   const sendMessage = useCallback(
     async (text: string): Promise<string> => {
       const baseMessages = messagesBeforeTurnRef.current;
-      const userMessage: ChatMessage = { id: newId(), role: "user", text, toolActivity: [] };
-      let assistantMessage: ChatMessage = { id: newId(), role: "assistant", text: "", toolActivity: [] };
+      const userMessage: ChatMessage = { id: newId(), role: "user", text, reasoningSteps: [] };
+      let assistantMessage: ChatMessage = { id: newId(), role: "assistant", text: "", reasoningSteps: [] };
 
       setMessages([...baseMessages, userMessage, assistantMessage]);
       setIsStreaming(true);
@@ -53,28 +53,41 @@ export function useChatStream(
             }
             case "text-revert": {
               const revertText = String(evt.data.text ?? "");
+              const round = Number(evt.data.round ?? 0);
               if (finalText.endsWith(revertText)) {
                 finalText = finalText.slice(0, finalText.length - revertText.length);
               }
               patchAssistant((m) => ({
                 ...m,
                 text: m.text.endsWith(revertText) ? m.text.slice(0, m.text.length - revertText.length) : m.text,
+                reasoningSteps: revertText
+                  ? [...m.reasoningSteps, { kind: "chatter", round, text: revertText }]
+                  : m.reasoningSteps,
               }));
               break;
             }
             case "tool-call":
               patchAssistant((m) => ({
                 ...m,
-                toolActivity: [...m.toolActivity, { name: String(evt.data.name), args: String(evt.data.args ?? "") }],
+                reasoningSteps: [
+                  ...m.reasoningSteps,
+                  {
+                    kind: "tool",
+                    round: Number(evt.data.round ?? 0),
+                    id: String(evt.data.id ?? ""),
+                    name: String(evt.data.name),
+                    args: String(evt.data.args ?? ""),
+                  },
+                ],
               }));
               break;
             case "tool-result":
               patchAssistant((m) => ({
                 ...m,
-                toolActivity: m.toolActivity.map((t) =>
-                  t.name === evt.data.name && t.result === undefined
-                    ? { ...t, result: String(evt.data.result ?? "") }
-                    : t,
+                reasoningSteps: m.reasoningSteps.map((s) =>
+                  s.kind === "tool" && s.id === String(evt.data.id ?? "")
+                    ? { ...s, result: String(evt.data.result ?? "") }
+                    : s,
                 ),
               }));
               break;

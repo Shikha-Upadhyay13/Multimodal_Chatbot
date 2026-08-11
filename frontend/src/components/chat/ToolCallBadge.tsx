@@ -1,9 +1,11 @@
 import { useState } from "react";
-import type { ToolActivity } from "../../types/chat.types";
+import type { ReasoningStep } from "../../types/chat.types";
 
 const PREVIEW_LENGTH = 140;
 
-export function ToolCallBadge({ activity }: { activity: ToolActivity }) {
+type ToolStep = Extract<ReasoningStep, { kind: "tool" }>;
+
+export function ToolCallBadge({ activity }: { activity: ToolStep }) {
   const [expanded, setExpanded] = useState(false);
   const isDone = activity.result !== undefined;
   const result = activity.result ?? "";

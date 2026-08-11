@@ -909,6 +909,98 @@
   text-decoration: underline;
 }
 
+/* ---------- Reasoning timeline ---------- */
+
+.reasoning-timeline {
+  margin-top: 0.5rem;
+}
+
+.reasoning-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.2rem 0;
+  transition: color 0.15s ease;
+}
+
+.reasoning-toggle:hover {
+  color: var(--accent-hover);
+}
+
+.reasoning-toggle-chevron {
+  display: inline-block;
+  transition: transform 0.2s ease;
+  font-size: 0.65rem;
+}
+
+.reasoning-toggle-chevron.open {
+  transform: rotate(90deg);
+}
+
+.reasoning-rounds {
+  margin-top: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  animation: fadeIn 0.2s ease both;
+}
+
+.reasoning-round {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  background: var(--overlay-weak);
+}
+
+.reasoning-round-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent-hover);
+  margin-bottom: 0.4rem;
+}
+
+.reasoning-step-chatter,
+.reasoning-step-tool {
+  margin-bottom: 0.5rem;
+}
+
+.reasoning-step-chatter:last-child,
+.reasoning-step-tool:last-child {
+  margin-bottom: 0;
+}
+
+.reasoning-step-chatter p {
+  margin: 0.2rem 0 0;
+  font-style: italic;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+}
+
+.reasoning-step-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.reasoning-args,
+.reasoning-result {
+  margin: 0.3rem 0 0;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0.5rem 0.6rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 /* ---------- Uploaded doc chips ---------- */
 
 .doc-chip-row {

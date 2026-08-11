@@ -1,9 +1,13 @@
 import { saveGeneratedFile } from "../../generators/fileRegistry";
-import { env } from "../../config/env";
 
-export function saveAndDescribe(fileName: string, mimeType: string, buffer: Buffer): string {
-  const file = saveGeneratedFile(fileName, mimeType, buffer);
-  const downloadUrl = `http://localhost:${env.PORT}/api/documents/${file.id}/download`;
+export function saveAndDescribe(fileName: string, mimeType: string, buffer: Buffer, projectId?: string): string {
+  const file = saveGeneratedFile(fileName, mimeType, buffer, projectId);
+  // Relative, not absolute: this app is deployed as a single service (frontend + API
+  // share one origin), and a hardcoded http://localhost link would be dead for anyone
+  // viewing the deployed app — including the person who asked for the file, not just
+  // remote collaborators once Projects are shareable. A relative path resolves against
+  // whatever origin is actually viewing the page.
+  const downloadUrl = `/api/documents/${file.id}/download`;
   return `Created "${fileName}". Download link: ${downloadUrl}`;
 }
 

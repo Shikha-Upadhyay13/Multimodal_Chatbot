@@ -33,9 +33,9 @@ export const createExcelDocTool: ToolDefinition = {
       },
     },
   },
-  run: async (args) => {
+  run: async (args, context) => {
     const spec = args as { fileName: string } & ExcelSpec;
     const buffer = await generateExcelDocument({ sheets: spec.sheets });
-    return saveAndDescribe(spec.fileName, MIME_TYPES.xlsx, buffer);
+    return saveAndDescribe(spec.fileName, MIME_TYPES.xlsx, buffer, context.projectId);
   },
 };

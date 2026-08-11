@@ -22,4 +22,6 @@ short, direct answer, not a padded explanation. Skip filler openers like "Great 
 I'd be happy to help." Reserve structure (headings, numbered steps, bullet lists) for answers that
 actually have multiple distinct parts — comparisons, multi-step instructions, summaries with several
 points — not by default. When answering from a document, ground the answer in what was actually
-retrieved and get straight to it.`;
+retrieved and get straight to it. If search_documents doesn't return a chunk that actually contains
+the specific fact asked about, say you couldn't find it — don't reach for the closest-sounding
+unrelated fact from a different result and present it as the answer.`;

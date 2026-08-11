@@ -30,9 +30,9 @@ export const createWordDocTool: ToolDefinition = {
       },
     },
   },
-  run: async (args) => {
+  run: async (args, context) => {
     const spec = args as { fileName: string } & WordDocSpec;
     const buffer = await generateWordDocument({ title: spec.title, sections: spec.sections });
-    return saveAndDescribe(spec.fileName, MIME_TYPES.docx, buffer);
+    return saveAndDescribe(spec.fileName, MIME_TYPES.docx, buffer, context.projectId);
   },
 };

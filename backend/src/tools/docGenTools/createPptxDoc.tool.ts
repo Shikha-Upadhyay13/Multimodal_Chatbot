@@ -29,9 +29,9 @@ export const createPptxDocTool: ToolDefinition = {
       },
     },
   },
-  run: async (args) => {
+  run: async (args, context) => {
     const spec = args as { fileName: string } & PptxSpec;
     const buffer = await generatePptxDocument({ title: spec.title, slides: spec.slides });
-    return saveAndDescribe(spec.fileName, MIME_TYPES.pptx, buffer);
+    return saveAndDescribe(spec.fileName, MIME_TYPES.pptx, buffer, context.projectId);
   },
 };

@@ -15,8 +15,15 @@ function cosineSimilarity(a: Float32Array, b: Float32Array): number {
   return dot;
 }
 
-export async function retrieveRelevantChunks(query: string, topK = 5): Promise<RetrievedChunk[]> {
-  const chunks = getAllChunks();
+export async function retrieveRelevantChunks(
+  query: string,
+  projectId?: string,
+  topK = 5,
+): Promise<RetrievedChunk[]> {
+  // Scoped to the same library the caller belongs to — filtered before scoring, not
+  // after, so a project's search never even considers another project's (or the global
+  // library's) chunks.
+  const chunks = getAllChunks().filter((c) => c.docProjectId === (projectId ?? null));
   if (chunks.length === 0) return [];
 
   const queryEmbedding = await embedText(query);

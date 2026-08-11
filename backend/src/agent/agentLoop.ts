@@ -1,7 +1,6 @@
 import type Groq from "groq-sdk";
 import { groq, MODELS } from "./groqClient";
-import { getHistory, appendMessages } from "./messageStore";
-import { toolSchemas, runTool } from "../tools";
+import { toolSchemas, runTool, type ToolContext } from "../tools";
 
 type Message = Groq.Chat.Completions.ChatCompletionMessageParam;
 
@@ -11,6 +10,19 @@ export type AgentEvent =
   | { type: "tool-call"; name: string; args: string }
   | { type: "tool-result"; name: string; result: string }
   | { type: "done" };
+
+/**
+ * Bundles a conversation's history access with its tool scoping so the two can never be
+ * mismatched (e.g. project history paired with an empty/wrong toolContext, which would
+ * leak one project's documents into another). Built once per conversation type by a
+ * `sessionFor(...)` factory — see messageStore.ts (regular chats) and
+ * projects/projectMessageStore.ts (project conversations).
+ */
+export interface AgentSession {
+  getHistory(): Message[];
+  appendMessages(messages: Message[]): void;
+  toolContext: ToolContext;
+}
 
 const MAX_ITERATIONS = 8;
 const MAX_ROUND_RETRIES = 3;
@@ -93,14 +105,14 @@ async function runRoundWithRetry(
  * answer (or the iteration cap trips, guarding against runaway tool-calling).
  */
 export async function runAgentLoop(
-  sessionId: string,
   userText: string,
   onEvent: (event: AgentEvent) => void,
+  session: AgentSession,
 ): Promise<void> {
-  appendMessages(sessionId, [{ role: "user", content: userText }]);
-  const history = getHistory(sessionId);
+  session.appendMessages([{ role: "user", content: userText }]);
 
   for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+    const history = session.getHistory();
     const { assistantText, toolCalls, finishReason } = await runRoundWithRetry(history, onEvent);
 
     if (finishReason === "tool_calls" && toolCalls.length > 0) {
@@ -118,19 +130,19 @@ export async function runAgentLoop(
           function: { name: tc.name, arguments: tc.args },
         })),
       };
-      appendMessages(sessionId, [assistantMessage]);
+      session.appendMessages([assistantMessage]);
 
       for (const tc of toolCalls) {
         onEvent({ type: "tool-call", name: tc.name, args: tc.args });
-        const result = await runTool(tc.name, tc.args);
+        const result = await runTool(tc.name, tc.args, session.toolContext);
         onEvent({ type: "tool-result", name: tc.name, result });
-        appendMessages(sessionId, [{ role: "tool", tool_call_id: tc.id, content: result }]);
+        session.appendMessages([{ role: "tool", tool_call_id: tc.id, content: result }]);
       }
 
       continue; // feed tool results back to the model
     }
 
-    appendMessages(sessionId, [{ role: "assistant", content: assistantText }]);
+    session.appendMessages([{ role: "assistant", content: assistantText }]);
     onEvent({ type: "done" });
     return;
   }

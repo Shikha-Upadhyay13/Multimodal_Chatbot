@@ -20,7 +20,7 @@ export interface IngestResult {
  * edit_pdf_document tool call can later load the real file back in for a true
  * load-modify-save edit, rather than only having searchable text.
  */
-export async function ingestFile(buffer: Buffer, originalName: string): Promise<IngestResult> {
+export async function ingestFile(buffer: Buffer, originalName: string, projectId?: string): Promise<IngestResult> {
   const text = await parseUploadedFile(buffer, originalName);
   const trimmed = text.trim();
   if (!trimmed) {
@@ -31,7 +31,7 @@ export async function ingestFile(buffer: Buffer, originalName: string): Promise<
   const filePath = path.join(FILES_DIR, `${documentId}${path.extname(originalName)}`);
   fs.writeFileSync(filePath, buffer);
 
-  insertDocument({ id: documentId, name: originalName, uploadedAt: Date.now(), fullText: trimmed, filePath });
+  insertDocument({ id: documentId, name: originalName, uploadedAt: Date.now(), fullText: trimmed, filePath, projectId });
 
   const pieces = chunkText(trimmed);
   const chunks = [];
@@ -39,7 +39,7 @@ export async function ingestFile(buffer: Buffer, originalName: string): Promise<
     const embedding = await embedText(piece);
     chunks.push({ id: randomUUID(), docId: documentId, docName: originalName, text: piece, embedding });
   }
-  insertChunks(chunks);
+  insertChunks(chunks, projectId);
 
   return { documentId, name: originalName, chunkCount: chunks.length, charCount: trimmed.length };
 }

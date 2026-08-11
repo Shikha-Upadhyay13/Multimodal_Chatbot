@@ -26,17 +26,17 @@ export const editExcelDocTool: ToolDefinition = {
       },
     },
   },
-  run: async (args) => {
+  run: async (args, context) => {
     const { documentName, sheetName, rows } = args as {
       documentName: string;
       sheetName: string;
       rows: Array<Array<string | number>>;
     };
 
-    const existing = resolveExistingFile(documentName);
+    const existing = resolveExistingFile(documentName, context.projectId);
     if (!existing) return `Error: no existing document found matching "${documentName}".`;
 
     const buffer = await appendRowsToExcel(existing.buffer, sheetName, rows);
-    return saveAndDescribe(existing.fileName, MIME_TYPES.xlsx, buffer);
+    return saveAndDescribe(existing.fileName, MIME_TYPES.xlsx, buffer, context.projectId);
   },
 };

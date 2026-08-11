@@ -2,7 +2,8 @@ import { Router } from "express";
 import { z } from "zod";
 import { runAgentLoop } from "../agent/agentLoop";
 import { generateTitle } from "../agent/titleGenerator";
-import { deleteHistory } from "../agent/messageStore";
+import { deleteHistory, sessionFor } from "../agent/messageStore";
+import { setSSEHeaders, createSSEEventHandler, sendSSEError } from "../agent/sseChatHandler";
 
 export const chatRouter = Router();
 
@@ -24,37 +25,13 @@ chatRouter.post("/", async (req, res) => {
   }
   const { sessionId, message } = parsed.data;
 
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.flushHeaders();
-
-  const send = (event: string, data: unknown) => {
-    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-  };
+  setSSEHeaders(res);
+  const onEvent = createSSEEventHandler(res);
 
   try {
-    await runAgentLoop(sessionId, message, (evt) => {
-      switch (evt.type) {
-        case "text-delta":
-          send("text-delta", { text: evt.text });
-          break;
-        case "text-revert":
-          send("text-revert", { text: evt.text });
-          break;
-        case "tool-call":
-          send("tool-call", { name: evt.name, args: evt.args });
-          break;
-        case "tool-result":
-          send("tool-result", { name: evt.name, result: evt.result });
-          break;
-        case "done":
-          send("done", {});
-          break;
-      }
-    });
+    await runAgentLoop(message, onEvent, sessionFor(sessionId));
   } catch (err) {
-    send("error", { message: err instanceof Error ? err.message : String(err) });
+    sendSSEError(res, err);
   } finally {
     res.end();
   }

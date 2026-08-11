@@ -14,13 +14,13 @@ export interface ResolvedFile {
  * doesn't matter whether that file was uploaded by the user or created earlier in the
  * conversation.
  */
-export function resolveExistingFile(name: string): ResolvedFile | null {
-  const uploaded = findDocumentByName(name);
+export function resolveExistingFile(name: string, projectId?: string): ResolvedFile | null {
+  const uploaded = findDocumentByName(name, projectId);
   if (uploaded?.filePath && fs.existsSync(uploaded.filePath)) {
     return { buffer: fs.readFileSync(uploaded.filePath), fileName: uploaded.name };
   }
 
-  const generated = findGeneratedFileByName(name);
+  const generated = findGeneratedFileByName(name, projectId);
   if (generated) {
     return { buffer: generated.buffer, fileName: generated.fileName };
   }

@@ -19,11 +19,11 @@ export const readDocumentTool: ToolDefinition = {
       },
     },
   },
-  run: async (args) => {
+  run: async (args, context) => {
     const name = String((args as { name: string }).name ?? "");
-    const doc = findDocumentByName(name);
+    const doc = findDocumentByName(name, context.projectId);
     if (!doc) {
-      const available = listDocuments().map((d) => d.name);
+      const available = listDocuments(context.projectId).map((d) => d.name);
       return available.length
         ? `No uploaded document matches "${name}". Available documents: ${available.join(", ")}`
         : `No uploaded document matches "${name}". No documents have been uploaded yet.`;

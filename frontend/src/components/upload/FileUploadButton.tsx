@@ -3,7 +3,14 @@ import { uploadDocument, type UploadedDoc } from "../../api/uploadApi";
 
 type Status = "idle" | "uploading" | "success" | "error";
 
-export function FileUploadButton({ onUploaded }: { onUploaded: (doc: UploadedDoc) => void }) {
+interface FileUploadButtonProps {
+  onUploaded: (doc: UploadedDoc) => void;
+  /** Defaults to the global (regular-chat) upload endpoint; ProjectView passes a
+   *  project-scoped uploader instead so files land in that project's own library. */
+  uploadFn?: (file: File) => Promise<UploadedDoc>;
+}
+
+export function FileUploadButton({ onUploaded, uploadFn = uploadDocument }: FileUploadButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +23,7 @@ export function FileUploadButton({ onUploaded }: { onUploaded: (doc: UploadedDoc
     setStatus("uploading");
     setError(null);
     try {
-      const doc = await uploadDocument(file);
+      const doc = await uploadFn(file);
       onUploaded(doc);
       setStatus("success");
       setTimeout(() => setStatus("idle"), 1800);

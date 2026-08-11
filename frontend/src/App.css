@@ -107,6 +107,169 @@
   font-size: 1rem;
 }
 
+/* ---------- Sidebar sections (Projects / Chats) ---------- */
+
+.sidebar-section-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: 0.9rem 0.6rem 0.3rem;
+}
+
+.project-shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.project-shortcut-item {
+  display: block;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.project-shortcut-item:hover {
+  background: var(--overlay-weak);
+  color: var(--text-primary);
+}
+
+/* ---------- New project modal ---------- */
+
+.new-project-panel {
+  width: min(480px, 100%);
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  animation: fadeInUp 0.2s ease both;
+}
+
+.settings-textarea {
+  width: 100%;
+  min-height: 80px;
+  background: var(--overlay-weak);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  padding: 0.6rem 0.7rem;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.15s ease;
+}
+
+.settings-textarea:focus {
+  border-color: var(--border-strong);
+}
+
+.new-project-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.send-button-wide {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.send-button-wide:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.send-button-wide:disabled {
+  background: var(--overlay);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+/* ---------- Project view ---------- */
+
+.project-brand {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.back-to-chats-link {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-decoration: none;
+  padding: 0.4rem 0.5rem 0.8rem;
+  transition: color 0.15s ease;
+}
+
+.back-to-chats-link:hover {
+  color: var(--text-primary);
+}
+
+.project-instructions-section {
+  margin-top: auto;
+  padding: 0.75rem 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.project-instructions-button {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.4rem 0.2rem;
+  transition: color 0.15s ease;
+}
+
+.project-instructions-button:hover {
+  color: var(--text-primary);
+}
+
+.project-not-found,
+.project-loading {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.project-not-found h1 {
+  color: var(--text-primary);
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.project-not-found a {
+  color: var(--accent-hover);
+  margin-top: 0.5rem;
+}
+
 /* ---------- Conversation list ---------- */
 
 .conversation-list {

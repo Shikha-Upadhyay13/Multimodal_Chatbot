@@ -18,11 +18,11 @@ export const searchDocumentsTool: ToolDefinition = {
       },
     },
   },
-  run: async (args) => {
+  run: async (args, context) => {
     const query = String((args as { query: string }).query ?? "");
     if (!query) return "Error: a query is required.";
 
-    const matches = await retrieveRelevantChunks(query);
+    const matches = await retrieveRelevantChunks(query, context.projectId);
     if (matches.length === 0) {
       return "No uploaded documents found (or none matched this query). Tell the user no relevant document content was found.";
     }

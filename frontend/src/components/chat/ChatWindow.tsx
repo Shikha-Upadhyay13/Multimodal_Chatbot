@@ -3,12 +3,12 @@ import { useChatStream } from "../../hooks/useChatStream";
 import { MessageBubble } from "./MessageBubble";
 import { FileUploadButton } from "../upload/FileUploadButton";
 import { UploadedDocsList } from "../upload/UploadedDocsList";
-import { listDocuments, type UploadedDoc } from "../../api/uploadApi";
+import { listDocuments, uploadDocument, type UploadedDoc } from "../../api/uploadApi";
 import { VoiceButton } from "../voice/VoiceButton";
 import { useSpeechSynthesis } from "../voice/useSpeechSynthesis";
-import { generateTitle } from "../../api/chatApi";
+import { generateTitle, streamChat } from "../../api/chatApi";
 import { loadSettings } from "../../utils/settingsStore";
-import type { ChatMessage } from "../../types/chat.types";
+import type { ChatMessage, ServerEvent } from "../../types/chat.types";
 
 const SUGGESTIONS = [
   { icon: "🕒", label: "What time is it?", prompt: "What time is it right now?" },
@@ -22,10 +22,28 @@ interface ChatWindowProps {
   initialMessages: ChatMessage[];
   onTitleGenerated: (title: string) => void;
   onTurnComplete: (messages: ChatMessage[]) => void;
+  /** All default to the regular (global) chat endpoints; ProjectView passes
+   *  project-scoped versions of each instead so a project's chat pane behaves
+   *  identically except for where its data actually lives. */
+  streamFn?: (conversationId: string, text: string) => AsyncGenerator<ServerEvent>;
+  uploadFn?: (file: File) => Promise<UploadedDoc>;
+  listDocsFn?: () => Promise<UploadedDoc[]>;
 }
 
-export function ChatWindow({ conversationId, initialMessages, onTitleGenerated, onTurnComplete }: ChatWindowProps) {
-  const { messages, isStreaming, sendMessage } = useChatStream(conversationId, initialMessages, onTurnComplete);
+export function ChatWindow({
+  conversationId,
+  initialMessages,
+  onTitleGenerated,
+  onTurnComplete,
+  streamFn = streamChat,
+  uploadFn = uploadDocument,
+  listDocsFn = listDocuments,
+}: ChatWindowProps) {
+  const { messages, isStreaming, sendMessage } = useChatStream(
+    (text) => streamFn(conversationId, text),
+    initialMessages,
+    onTurnComplete,
+  );
   const [input, setInput] = useState("");
   const [docs, setDocs] = useState<UploadedDoc[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -36,10 +54,10 @@ export function ChatWindow({ conversationId, initialMessages, onTitleGenerated, 
   }, [messages]);
 
   useEffect(() => {
-    listDocuments()
+    listDocsFn()
       .then(setDocs)
       .catch(() => {});
-  }, []);
+  }, [listDocsFn]);
 
   /** Wraps sendMessage so a conversation's very first exchange also triggers a title,
    *  regardless of whether it was typed, voice, or a suggestion chip. */
@@ -102,7 +120,7 @@ export function ChatWindow({ conversationId, initialMessages, onTitleGenerated, 
       <div className="composer-wrapper">
         <form className="composer-column" onSubmit={handleSubmit}>
           <div className="composer-pill">
-            <FileUploadButton onUploaded={(doc) => setDocs((prev) => [...prev, doc])} />
+            <FileUploadButton uploadFn={uploadFn} onUploaded={(doc) => setDocs((prev) => [...prev, doc])} />
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}

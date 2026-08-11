@@ -19,9 +19,9 @@ export const createPdfDocTool: ToolDefinition = {
       },
     },
   },
-  run: async (args) => {
+  run: async (args, context) => {
     const spec = args as { fileName: string } & PdfSpec;
     const buffer = await generatePdfDocument({ title: spec.title, paragraphs: spec.paragraphs });
-    return saveAndDescribe(spec.fileName, MIME_TYPES.pdf, buffer);
+    return saveAndDescribe(spec.fileName, MIME_TYPES.pdf, buffer, context.projectId);
   },
 };

@@ -21,13 +21,13 @@ export const editPdfDocTool: ToolDefinition = {
       },
     },
   },
-  run: async (args) => {
+  run: async (args, context) => {
     const { documentName, paragraphs } = args as { documentName: string; paragraphs: string[] };
 
-    const existing = resolveExistingFile(documentName);
+    const existing = resolveExistingFile(documentName, context.projectId);
     if (!existing) return `Error: no existing document found matching "${documentName}".`;
 
     const buffer = await appendPageToPdf(existing.buffer, paragraphs);
-    return saveAndDescribe(existing.fileName, MIME_TYPES.pdf, buffer);
+    return saveAndDescribe(existing.fileName, MIME_TYPES.pdf, buffer, context.projectId);
   },
 };

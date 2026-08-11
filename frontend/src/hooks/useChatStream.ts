@@ -1,20 +1,20 @@
 import { useCallback, useRef, useState } from "react";
-import { streamChat } from "../api/chatApi";
-import type { ChatMessage } from "../types/chat.types";
+import type { ChatMessage, ServerEvent } from "../types/chat.types";
 
 function newId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 /**
- * conversationId doubles as the backend session id — so the same conversation always
- * resumes the same agent-loop history. initialMessages seeds a conversation being
- * reopened (from localStorage); onTurnComplete reports the settled message array once
- * per turn (not per streamed token) so a caller can persist it and, on a conversation's
- * first turn, generate a title.
+ * streamFn is provided by the caller (regular chat vs. project conversation use
+ * different endpoints but the identical SSE event shapes) so this hook's turn-handling
+ * logic — text-revert, tool activity grouping, title-trigger return value — is reusable
+ * as-is for both. initialMessages seeds a conversation being reopened; onTurnComplete
+ * reports the settled message array once per turn (not per streamed token) so a caller
+ * can persist it and, on a conversation's first turn, generate a title.
  */
 export function useChatStream(
-  conversationId: string,
+  streamFn: (text: string) => AsyncGenerator<ServerEvent>,
   initialMessages: ChatMessage[],
   onTurnComplete: (messages: ChatMessage[]) => void,
 ) {
@@ -43,7 +43,7 @@ export function useChatStream(
       let finalText = "";
 
       try {
-        for await (const evt of streamChat(conversationId, text)) {
+        for await (const evt of streamFn(text)) {
           switch (evt.event) {
             case "text-delta": {
               const delta = String(evt.data.text ?? "");
@@ -101,7 +101,7 @@ export function useChatStream(
 
       return finalText;
     },
-    [conversationId, onTurnComplete],
+    [streamFn, onTurnComplete],
   );
 
   return { messages, isStreaming, sendMessage };

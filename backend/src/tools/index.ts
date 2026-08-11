@@ -9,9 +9,16 @@ import { createPdfDocTool } from "./docGenTools/createPdfDoc.tool";
 import { editExcelDocTool } from "./docGenTools/editExcelDoc.tool";
 import { editPdfDocTool } from "./docGenTools/editPdfDoc.tool";
 
+/** projectId is undefined for regular (global) chats — present only for project-scoped
+ *  conversations, and threaded through to every tool so document/search/generation tools
+ *  can't accidentally read or write outside their own project's data. */
+export interface ToolContext {
+  projectId?: string;
+}
+
 export interface ToolDefinition {
   schema: Groq.Chat.Completions.ChatCompletionTool;
-  run: (args: unknown) => Promise<string>;
+  run: (args: unknown, context: ToolContext) => Promise<string>;
 }
 
 const allTools: ToolDefinition[] = [
@@ -30,7 +37,7 @@ export const toolSchemas: Groq.Chat.Completions.ChatCompletionTool[] = allTools.
 
 const toolByName = new Map(allTools.map((t) => [t.schema.function!.name, t]));
 
-export async function runTool(name: string, rawArguments: string): Promise<string> {
+export async function runTool(name: string, rawArguments: string, context: ToolContext): Promise<string> {
   const tool = toolByName.get(name);
   if (!tool) return `Error: unknown tool "${name}"`;
 
@@ -42,7 +49,7 @@ export async function runTool(name: string, rawArguments: string): Promise<strin
   }
 
   try {
-    return await tool.run(args);
+    return await tool.run(args, context);
   } catch (err) {
     return `Error: tool "${name}" failed: ${err instanceof Error ? err.message : String(err)}`;
   }

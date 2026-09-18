@@ -22,3 +22,8 @@ export function linkifyDocumentUrls(text: string): string {
 export function documentDownloadUrls(text: string): string[] {
   return [...text.matchAll(DOWNLOAD_PATH)].map((m) => m[0]);
 }
+
+export function documentIdFromDownloadPath(path: string): string | null {
+  const match = path.match(/\/api\/documents\/([0-9a-fA-F-]{36})\/download/);
+  return match?.[1] ?? null;
+}

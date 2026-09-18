@@ -97,7 +97,7 @@ export function ChatWindow({
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const target = e.target as HTMLElement | null;
       if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
-      if (document.querySelector(".settings-overlay")) return;
+      if (document.querySelector(".settings-overlay, .doc-preview-overlay")) return;
       if (e.key.length === 1 || e.key === "Backspace") focusComposer();
     };
     window.addEventListener("keydown", onKeyDown);

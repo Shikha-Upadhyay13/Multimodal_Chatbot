@@ -8,29 +8,31 @@ import {
   resolveApiUrl,
 } from "../../api/base";
 import type { ChatMessage } from "../../types/chat.types";
-import { ToolCallBadge } from "./ToolCallBadge";
+import { nextMovesFor } from "../../utils/agentWork";
+import { AgentTrail } from "./AgentTrail";
 import { ReasoningTimeline } from "./ReasoningTimeline";
 
 export function MessageBubble({
   message,
   onPreview,
   activePreviewId,
+  onRunMove,
+  showNextMoves,
 }: {
   message: ChatMessage;
   onPreview?: (doc: { id: string; href: string }) => void;
   activePreviewId?: string | null;
+  onRunMove?: (prompt: string) => void;
+  showNextMoves?: boolean;
 }) {
   const isUser = message.role === "user";
+  const moves = showNextMoves && onRunMove ? nextMovesFor(message) : [];
 
   return (
     <div className={`message-row ${message.role}`}>
       {!isUser && <div className="avatar avatar-assistant">✦</div>}
       <div className="message-content">
-        {message.reasoningSteps
-          .filter((step) => step.kind === "tool")
-          .map((step) => (
-            <ToolCallBadge key={step.id} activity={step} />
-          ))}
+        {!isUser && <AgentTrail steps={message.reasoningSteps} />}
         {message.text ? (
           <>
             <ReactMarkdown
@@ -72,9 +74,26 @@ export function MessageBubble({
                 activePreviewId={activePreviewId}
               />
             ))}
+            {moves.length > 0 && (
+              <div className="next-moves">
+                <div className="next-moves-kicker">Keep going</div>
+                <div className="next-moves-row">
+                  {moves.map((move) => (
+                    <button
+                      key={move.label}
+                      type="button"
+                      className="next-move-chip"
+                      onClick={() => onRunMove?.(move.prompt)}
+                    >
+                      {move.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         ) : (
-          !isUser && (
+          !isUser && message.reasoningSteps.length === 0 && (
             <div className="thinking-indicator">
               <span />
               <span />

@@ -30,7 +30,7 @@ export function Sidebar({ conversations, activeId, onNewChat, onSelectConversati
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-brand">Personal Chatbot</div>
+      <div className="sidebar-brand">Workshop</div>
       <button type="button" className="new-chat-button" onClick={onNewChat}>
         <span className="new-chat-icon">+</span> New chat
       </button>

@@ -3,6 +3,7 @@ import cors from "cors";
 import fs from "node:fs";
 import path from "node:path";
 import { env } from "./config/env";
+import { langsmithEnabled } from "./observability/langsmith";
 import { chatRouter } from "./routes/chat.route";
 import { uploadRouter } from "./routes/upload.route";
 import { documentsRouter } from "./routes/documents.route";
@@ -45,6 +46,9 @@ async function start() {
 
   app.listen(env.PORT, () => {
     console.log(`Backend listening on http://localhost:${env.PORT}`);
+    if (langsmithEnabled) {
+      console.log(`LangSmith tracing on (project: ${process.env.LANGSMITH_PROJECT})`);
+    }
   });
 }
 

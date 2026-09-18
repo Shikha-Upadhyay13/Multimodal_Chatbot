@@ -1,4 +1,5 @@
 import type Groq from "groq-sdk";
+import { traceable } from "langsmith/traceable";
 import { groq, MODELS } from "./groqClient";
 import { toolSchemas, runTool, type ToolContext } from "../tools";
 
@@ -105,7 +106,7 @@ async function runRoundWithRetry(
  * tool, run it and feed the result back in — repeating until the model gives a final
  * answer (or the iteration cap trips, guarding against runaway tool-calling).
  */
-export async function runAgentLoop(
+async function runAgentLoopImpl(
   userText: string,
   onEvent: (event: AgentEvent) => void,
   session: AgentSession,
@@ -151,3 +152,12 @@ export async function runAgentLoop(
   onEvent({ type: "text-delta", text: "\n\n[Stopped: too many tool-call iterations]", round: MAX_ITERATIONS });
   onEvent({ type: "done" });
 }
+
+export const runAgentLoop = traceable(runAgentLoopImpl, {
+  name: "agent_turn",
+  run_type: "chain",
+  processInputs: (inputs) => {
+    const args = "args" in inputs ? (inputs as { args: unknown[] }).args : [];
+    return { input: args[0] };
+  },
+});

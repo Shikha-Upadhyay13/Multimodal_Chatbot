@@ -1,4 +1,5 @@
 import type Groq from "groq-sdk";
+import { traceable } from "langsmith/traceable";
 import { utilityTools } from "./utilityTools";
 import { searchDocumentsTool } from "./ragTool";
 import { readDocumentTool } from "./readDocumentTool";
@@ -37,7 +38,7 @@ export const toolSchemas: Groq.Chat.Completions.ChatCompletionTool[] = allTools.
 
 const toolByName = new Map(allTools.map((t) => [t.schema.function!.name, t]));
 
-export async function runTool(name: string, rawArguments: string, context: ToolContext): Promise<string> {
+async function runToolImpl(name: string, rawArguments: string, context: ToolContext): Promise<string> {
   const tool = toolByName.get(name);
   if (!tool) return `Error: unknown tool "${name}"`;
 
@@ -54,3 +55,12 @@ export async function runTool(name: string, rawArguments: string, context: ToolC
     return `Error: tool "${name}" failed: ${err instanceof Error ? err.message : String(err)}`;
   }
 }
+
+export const runTool = traceable(runToolImpl, {
+  name: "run_tool",
+  run_type: "tool",
+  processInputs: (inputs) => {
+    const args = "args" in inputs ? (inputs as { args: unknown[] }).args : [];
+    return { tool: args[0], arguments: args[1] };
+  },
+});

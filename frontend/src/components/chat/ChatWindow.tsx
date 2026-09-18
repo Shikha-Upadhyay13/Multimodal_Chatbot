@@ -9,13 +9,33 @@ import { VoiceButton } from "../voice/VoiceButton";
 import { useSpeechSynthesis } from "../voice/useSpeechSynthesis";
 import { generateTitle, streamChat } from "../../api/chatApi";
 import { loadSettings } from "../../utils/settingsStore";
+import { documentDownloadUrls, documentIdFromDownloadPath, resolveApiUrl } from "../../api/base";
 import type { ChatMessage, ServerEvent } from "../../types/chat.types";
 
 const SUGGESTIONS = [
-  { icon: "🕒", label: "What time is it?", prompt: "What time is it right now?" },
-  { icon: "🧮", label: "Do some math", prompt: "What is 84 times 37?" },
-  { icon: "📄", label: "Summarize a doc", prompt: "Summarize the document I uploaded in three bullet points." },
-  { icon: "📊", label: "Build a spreadsheet", prompt: "Create an Excel file called budget.xlsx tracking rent, food, and savings for one month." },
+  {
+    icon: "🔭",
+    label: "Research, then brief me",
+    prompt:
+      "Look up what's actually happening this week in electric vehicles. Then write a one-page Word briefing with sources and a download link — not a chat essay.",
+  },
+  {
+    icon: "🎛️",
+    label: "Invent a working file",
+    prompt:
+      "Invent a realistic 3-month freelance cashflow spreadsheet (income, expenses, runway) named cashflow.xlsx and hand me the file.",
+  },
+  {
+    icon: "🎬",
+    label: "Pitch in slides",
+    prompt:
+      "Create a 6-slide pitch deck for a neighborhood compost pickup startup. Specific numbers and names, not generic startup filler.",
+  },
+  {
+    icon: "🖼️",
+    label: "Sketch the idea",
+    prompt: "Generate an image of a rainy-window reading nook at night, cinematic lighting, no text in the image.",
+  },
 ];
 
 interface ChatWindowProps {
@@ -68,6 +88,9 @@ export function ChatWindow({
   const inputRef = useRef<HTMLInputElement>(null);
   const { speak } = useSpeechSynthesis();
 
+  const lastAutoPreviewRef = useRef<string | null>(null);
+  const readyForAutoPreview = useRef(false);
+
   const focusComposer = () => {
     inputRef.current?.focus();
   };
@@ -93,6 +116,21 @@ export function ChatWindow({
   useEffect(() => {
     if (!isStreaming) focusComposer();
   }, [isStreaming]);
+
+  useEffect(() => {
+    if (isStreaming) return;
+    const last = [...messages].reverse().find((m) => m.role === "assistant");
+    const path = last ? documentDownloadUrls(last.text)[0] : undefined;
+    const id = path ? documentIdFromDownloadPath(path) : null;
+    if (!readyForAutoPreview.current) {
+      readyForAutoPreview.current = true;
+      if (id) lastAutoPreviewRef.current = id;
+      return;
+    }
+    if (!id || lastAutoPreviewRef.current === id) return;
+    lastAutoPreviewRef.current = id;
+    setPreview({ id, href: resolveApiUrl(path!) });
+  }, [messages, isStreaming]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -148,8 +186,8 @@ export function ChatWindow({
             <UploadedDocsList docs={docs} />
             {messages.length === 0 && extraMessages.length === 0 ? (
               <div className="chat-empty">
-                <h1>What can I help with?</h1>
-                <p>Ask anything, upload a document and ask about it, or press the mic to talk.</p>
+                <h1>What are we making?</h1>
+                <p>Give me a job. I&apos;ll research, build the file, and show the trail — not just talk.</p>
                 <div className="suggestion-grid">
                   {SUGGESTIONS.map((s) => (
                     <button key={s.label} type="button" className="suggestion-chip" onClick={() => void send(s.prompt)}>
@@ -161,12 +199,14 @@ export function ChatWindow({
               </div>
             ) : (
               <div className="chat-messages">
-                {messages.map((m) => (
+                {messages.map((m, index) => (
                   <MessageBubble
                     key={m.id}
                     message={m}
                     onPreview={handlePreview}
                     activePreviewId={preview?.id}
+                    onRunMove={(prompt) => void send(prompt)}
+                    showNextMoves={!isStreaming && extraMessages.length === 0 && index === messages.length - 1}
                   />
                 ))}
                 {extraMessages.map((m) => (
@@ -196,7 +236,7 @@ export function ChatWindow({
                   setInput(e.target.value);
                   onComposerActivity?.();
                 }}
-                placeholder="Message your assistant..."
+                placeholder="Give me a job..."
               />
               <VoiceButton onTranscript={(text) => void handleVoiceTranscript(text)} />
               <button type="submit" className="send-button" disabled={isStreaming || !input.trim()}>

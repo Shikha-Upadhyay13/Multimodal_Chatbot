@@ -20,10 +20,8 @@ export interface DisplayMessage {
  * grouping the live SSE stream already does in useChatStream.ts:
  *  - skip the (never-persisted, but defensive) system role
  *  - an assistant row with tool_calls never shows its own `content` as answer text — that
- *    text was already retracted live via a "text-revert" event (see agentLoop.ts) before
- *    the tool result was known, so persisting it as visible text here would show the
- *    viewer chatter they never actually saw live. It's captured as a "chatter" reasoning
- *    step instead, matching what a live viewer would have seen retracted in real time.
+ *    text was already retracted live via a "text-revert" event (see agentLoop.ts) so it
+ *    can live as a plan step in the work trail instead of a half-written reply.
  *  - each tool_calls entry is paired with its later role:"tool" row by tool_call_id to
  *    build one "tool" reasoning step per call.
  *  - round is a locally-assigned counter (one per assistant-with-tool_calls row), since

@@ -960,12 +960,41 @@
 .doc-preview-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 1rem;
-  padding: 1rem 1.15rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
   background: var(--bg-main);
   flex-shrink: 0;
+}
+
+.doc-preview-title {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.doc-preview-title > div {
+  min-width: 0;
+}
+
+.doc-preview-collapse {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.doc-preview-collapse:hover {
+  background: var(--overlay);
 }
 
 .doc-preview-kicker {
@@ -978,22 +1007,16 @@
 .doc-preview-header h2 {
   margin: 0.15rem 0 0;
   font-size: 1.05rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .doc-preview-header-actions {
   display: flex;
   gap: 0.5rem;
   align-items: center;
-}
-
-.doc-preview-close {
-  background: transparent;
-  border: 1px solid var(--border-strong);
-  color: var(--text-primary);
-  border-radius: 10px;
-  padding: 0.45rem 0.75rem;
-  cursor: pointer;
-  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .doc-preview-body {
@@ -1096,6 +1119,90 @@
 
 .download-link:hover {
   opacity: 0.8;
+}
+
+/* ---------- Agent work trail ---------- */
+
+.agent-trail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0 0 0.85rem;
+  padding: 0.7rem 0.85rem 0.75rem 0.9rem;
+  border-left: 2px solid var(--accent);
+  background: var(--overlay-weak);
+  border-radius: 0 12px 12px 0;
+  animation: fadeIn 0.25s ease both;
+}
+
+.agent-plan-kicker,
+.next-moves-kicker {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-hover);
+}
+
+.agent-plan p {
+  margin: 0.2rem 0 0;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.agent-step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.agent-step-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f59e0b;
+  flex-shrink: 0;
+  animation: badge-pulse 1s infinite;
+}
+
+.agent-step.is-done {
+  color: var(--text-primary);
+}
+
+.agent-step.is-done .agent-step-dot {
+  background: #22c55e;
+  animation: none;
+}
+
+.next-moves {
+  margin: 0.85rem 0 0.2rem;
+}
+
+.next-moves-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.4rem;
+}
+
+.next-move-chip {
+  background: transparent;
+  border: 1px dashed var(--border-strong);
+  color: var(--text-primary);
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.next-move-chip:hover {
+  background: var(--overlay);
+  border-color: var(--accent);
+  border-style: solid;
 }
 
 /* ---------- Tool call badges ---------- */

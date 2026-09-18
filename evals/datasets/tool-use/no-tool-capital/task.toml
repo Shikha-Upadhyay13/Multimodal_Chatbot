@@ -1,0 +1,19 @@
+schema_version = "1.0"
+
+[task]
+name = "multimodal-chatbot/tool-use__no-tool-capital"
+description = "Paris with no calculator or search tool"
+keywords = ["tool-use", "no-tool"]
+
+[metadata]
+difficulty = "easy"
+category = "tool-use"
+
+[verifier]
+timeout_sec = 60.0
+
+[agent]
+timeout_sec = 120.0
+
+[environment]
+build_timeout_sec = 300.0

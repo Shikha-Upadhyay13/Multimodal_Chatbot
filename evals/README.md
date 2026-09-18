@@ -30,14 +30,30 @@ Get-Content .env | ForEach-Object {
 }
 ```
 
-## Phases
+## Task folders
 
-0. Keys in `backend/.env` and `evals/.env`
-1. This folder + `harbor --help`
-2. Official hello-world into LangSmith (`--plugin langsmith`, `--env langsmith` if no Docker)
-3. Trace the Express agent (LangSmith JS SDK)
-4. Adapter: `instruction.md` → `POST /api/chat` → `answer.txt` + `tools.json`
-5. Tool-use task folders under `datasets/tool-use/`
-6. `harbor run -p datasets/tool-use --plugin langsmith`
+Six tasks live under [`datasets/tool-use/`](datasets/tool-use/README.md). Backend must be running on `CHATBOT_URL` (default `http://localhost:3001`).
+
+Smoke the adapter without Harbor:
+
+```powershell
+cd evals
+.\.venv\Scripts\Activate.ps1
+$env:PYTHONPATH = (Get-Location).Path
+python scripts\smoke_adapter.py
+```
+
+Run the suite (from `evals/`, after loading `.env`):
+
+```powershell
+$env:PYTHONPATH = (Get-Location).Path
+harbor run -p datasets/tool-use --agent agents.chatbot_agent:ChatbotAgent --plugin langsmith --env langsmith
+```
+
+One task only:
+
+```powershell
+harbor run -p datasets/tool-use/calc-multiply --agent agents.chatbot_agent:ChatbotAgent --plugin langsmith --env langsmith
+```
 
 Never commit `.env` files.

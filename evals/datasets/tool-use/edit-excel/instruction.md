@@ -1,0 +1,1 @@
+First create an Excel file named seed-budget.xlsx with a sheet called Budget, headers Month and Amount, and one row January, 100. Then use the Excel edit tool to append a February, 200 row. Include the download link in your reply.

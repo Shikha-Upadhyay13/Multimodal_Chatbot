@@ -1,0 +1,19 @@
+schema_version = "1.0"
+
+[task]
+name = "multimodal-chatbot/tool-use__edit-excel"
+description = "Must call edit_excel_document after creating a seed sheet"
+keywords = ["tool-use", "excel", "edit"]
+
+[metadata]
+difficulty = "hard"
+category = "tool-use"
+
+[verifier]
+timeout_sec = 60.0
+
+[agent]
+timeout_sec = 180.0
+
+[environment]
+build_timeout_sec = 300.0

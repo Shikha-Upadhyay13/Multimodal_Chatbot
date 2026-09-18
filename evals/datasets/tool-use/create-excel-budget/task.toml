@@ -1,0 +1,19 @@
+schema_version = "1.0"
+
+[task]
+name = "multimodal-chatbot/tool-use__create-excel-budget"
+description = "Must create an Excel file and return /api/documents/"
+keywords = ["tool-use", "excel"]
+
+[metadata]
+difficulty = "medium"
+category = "tool-use"
+
+[verifier]
+timeout_sec = 60.0
+
+[agent]
+timeout_sec = 120.0
+
+[environment]
+build_timeout_sec = 300.0

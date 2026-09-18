@@ -1,0 +1,19 @@
+schema_version = "1.0"
+
+[task]
+name = "multimodal-chatbot/tool-use__calc-multiply"
+description = "Calculator must return 84 * 37 = 3108"
+keywords = ["tool-use", "calculator"]
+
+[metadata]
+difficulty = "easy"
+category = "tool-use"
+
+[verifier]
+timeout_sec = 60.0
+
+[agent]
+timeout_sec = 120.0
+
+[environment]
+build_timeout_sec = 300.0

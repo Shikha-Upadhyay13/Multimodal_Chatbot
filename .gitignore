@@ -3,6 +3,8 @@ dist/
 build/
 .env
 evals/.venv/
+__pycache__/
+*.pyc
 *.log
 
 # kept locally for reference, not published (public repo)

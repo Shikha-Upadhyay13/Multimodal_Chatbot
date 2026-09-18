@@ -27,7 +27,7 @@ export function ReasoningTimeline({ steps }: { steps: ReasoningStep[] }) {
     <div className="reasoning-timeline">
       <button type="button" className="reasoning-toggle" onClick={() => setExpanded((v) => !v)}>
         <span className={`reasoning-toggle-chevron${expanded ? " open" : ""}`}>▸</span>
-        {expanded ? "Hide reasoning" : `Show reasoning · ${steps.length} step${steps.length === 1 ? "" : "s"}`}
+        {expanded ? "Hide work notes" : `Work notes · ${steps.length} step${steps.length === 1 ? "" : "s"}`}
       </button>
 
       {expanded && (
@@ -38,7 +38,7 @@ export function ReasoningTimeline({ steps }: { steps: ReasoningStep[] }) {
               {roundSteps.map((step) =>
                 step.kind === "chatter" ? (
                   <div className="reasoning-step-chatter" key={`chatter-${round}-${step.text.slice(0, 20)}`}>
-                    <span className="reasoning-step-label">considered, then discarded</span>
+                    <span className="reasoning-step-label">plan</span>
                     <p>{step.text}</p>
                   </div>
                 ) : (

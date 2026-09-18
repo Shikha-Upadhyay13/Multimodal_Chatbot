@@ -8,6 +8,7 @@ const envSchema = z.object({
   LANGSMITH_TRACING: z.string().optional(),
   LANGSMITH_PROJECT: z.string().optional(),
   LANGSMITH_ENDPOINT: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

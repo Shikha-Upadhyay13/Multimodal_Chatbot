@@ -1,6 +1,8 @@
 import type Groq from "groq-sdk";
 import { traceable } from "langsmith/traceable";
 import { utilityTools } from "./utilityTools";
+import { webTools } from "./webTools";
+import { generateImageTool } from "./generateImage.tool";
 import { searchDocumentsTool } from "./ragTool";
 import { readDocumentTool } from "./readDocumentTool";
 import { createWordDocTool } from "./docGenTools/createWordDoc.tool";
@@ -24,6 +26,8 @@ export interface ToolDefinition {
 
 const allTools: ToolDefinition[] = [
   ...utilityTools,
+  ...webTools,
+  generateImageTool,
   searchDocumentsTool,
   readDocumentTool,
   createWordDocTool,

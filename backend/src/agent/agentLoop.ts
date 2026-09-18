@@ -106,12 +106,24 @@ async function runRoundWithRetry(
  * tool, run it and feed the result back in — repeating until the model gives a final
  * answer (or the iteration cap trips, guarding against runaway tool-calling).
  */
+export interface AgentTurnResult {
+  tools: string[];
+  finalText: string;
+  downloadUrls: string[];
+  stoppedEarly: boolean;
+}
+
+function downloadUrlsIn(text: string): string[] {
+  return [...text.matchAll(/\/api\/documents\/[0-9a-fA-F-]{36}\/download/g)].map((m) => m[0]);
+}
+
 async function runAgentLoopImpl(
   userText: string,
   onEvent: (event: AgentEvent) => void,
   session: AgentSession,
-): Promise<void> {
+): Promise<AgentTurnResult> {
   session.appendMessages([{ role: "user", content: userText }]);
+  const tools: string[] = [];
 
   for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
     const history = session.getHistory();
@@ -135,8 +147,14 @@ async function runAgentLoopImpl(
       session.appendMessages([assistantMessage]);
 
       for (const tc of toolCalls) {
+        tools.push(tc.name);
         onEvent({ type: "tool-call", id: tc.id, name: tc.name, args: tc.args, round: iteration });
-        const result = await runTool(tc.name, tc.args, session.toolContext);
+        let result: string;
+        try {
+          result = await runTool(tc.name, tc.args, session.toolContext);
+        } catch (err) {
+          result = `Error: tool "${tc.name}" failed: ${err instanceof Error ? err.message : String(err)}`;
+        }
         onEvent({ type: "tool-result", id: tc.id, name: tc.name, result, round: iteration });
         session.appendMessages([{ role: "tool", tool_call_id: tc.id, content: result }]);
       }
@@ -146,11 +164,17 @@ async function runAgentLoopImpl(
 
     session.appendMessages([{ role: "assistant", content: assistantText }]);
     onEvent({ type: "done" });
-    return;
+    return {
+      tools,
+      finalText: assistantText,
+      downloadUrls: downloadUrlsIn(assistantText),
+      stoppedEarly: false,
+    };
   }
 
   onEvent({ type: "text-delta", text: "\n\n[Stopped: too many tool-call iterations]", round: MAX_ITERATIONS });
   onEvent({ type: "done" });
+  return { tools, finalText: "", downloadUrls: [], stoppedEarly: true };
 }
 
 export const runAgentLoop = traceable(runAgentLoopImpl, {

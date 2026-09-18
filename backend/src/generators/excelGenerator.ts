@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import { normalizeCells } from "./tableTypes";
 
 export interface SheetSpec {
   name: string;
@@ -11,11 +12,20 @@ export interface ExcelSpec {
 }
 
 export async function generateExcelDocument(spec: ExcelSpec): Promise<Buffer> {
+  if (!spec.sheets?.length) {
+    throw new Error("create_excel_document needs at least one sheet with headers and rows");
+  }
   const workbook = new ExcelJS.Workbook();
   for (const sheet of spec.sheets) {
-    const worksheet = workbook.addWorksheet(sheet.name);
-    if (sheet.headers) worksheet.addRow(sheet.headers);
-    for (const row of sheet.rows) worksheet.addRow(row);
+    const worksheet = workbook.addWorksheet(sheet.name || "Sheet1");
+    if (sheet.headers?.length) {
+      const header = worksheet.addRow(sheet.headers.map(String));
+      header.font = { bold: true };
+    }
+    for (const row of normalizeCells(sheet.rows)) worksheet.addRow(row);
+    worksheet.columns.forEach((col) => {
+      col.width = 16;
+    });
   }
   return (await workbook.xlsx.writeBuffer()) as unknown as Buffer;
 }

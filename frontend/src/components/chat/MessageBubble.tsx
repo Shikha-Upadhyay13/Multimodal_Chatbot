@@ -1,4 +1,6 @@
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { documentDownloadUrls, isDocumentDownload, linkifyDocumentUrls, resolveApiUrl } from "../../api/base";
 import type { ChatMessage } from "../../types/chat.types";
 import { ToolCallBadge } from "./ToolCallBadge";
 import { ReasoningTimeline } from "./ReasoningTimeline";
@@ -17,13 +19,38 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
           ))}
         {message.text ? (
           <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
             components={{
-              a: ({ ...props }) => <a {...props} target="_blank" rel="noreferrer" className="download-link" />,
+              a: ({ href, children, ...props }) => {
+                const resolved = href ? resolveApiUrl(href) : href;
+                if (resolved && isDocumentDownload(resolved)) {
+                  return (
+                    <a {...props} href={resolved} className="download-link" download>
+                      {children}
+                    </a>
+                  );
+                }
+                return (
+                  <a {...props} href={resolved} target="_blank" rel="noreferrer" className="download-link">
+                    {children}
+                  </a>
+                );
+              },
               p: ({ ...props }) => <p className="md-paragraph" {...props} />,
+              table: ({ ...props }) => (
+                <div className="md-table-wrap">
+                  <table className="md-table" {...props} />
+                </div>
+              ),
             }}
           >
-            {message.text}
+            {linkifyDocumentUrls(message.text)}
           </ReactMarkdown>
+          {documentDownloadUrls(message.text).map((path) => (
+            <a key={path} className="doc-download-btn" href={resolveApiUrl(path)} download>
+              Download file
+            </a>
+          ))}
         ) : (
           !isUser && (
             <div className="thinking-indicator">

@@ -40,27 +40,43 @@ const toolByName = new Map(allTools.map((t) => [t.schema.function!.name, t]));
 
 async function runToolImpl(name: string, rawArguments: string, context: ToolContext): Promise<string> {
   const tool = toolByName.get(name);
-  if (!tool) return `Error: unknown tool "${name}"`;
+  if (!tool) throw new Error(`unknown tool "${name}"`);
 
   let args: unknown = {};
   try {
     args = rawArguments ? JSON.parse(rawArguments) : {};
   } catch {
-    return `Error: tool "${name}" received malformed JSON arguments.`;
+    throw new Error(`tool "${name}" received malformed JSON arguments`);
   }
 
-  try {
-    return await tool.run(args, context);
-  } catch (err) {
-    return `Error: tool "${name}" failed: ${err instanceof Error ? err.message : String(err)}`;
-  }
+  return tool.run(args, context);
 }
 
-export const runTool = traceable(runToolImpl, {
-  name: "run_tool",
-  run_type: "tool",
-  processInputs: (inputs) => {
-    const args = "args" in inputs ? (inputs as { args: unknown[] }).args : [];
-    return { tool: args[0], arguments: args[1] };
-  },
-});
+const tracedByName = new Map<string, typeof runToolImpl>();
+
+/** Runs a tool and records a LangSmith child span named after that tool.
+ *  Thrown errors make that span red. The agent loop catches them and still
+ *  feeds an Error: string back to the model. */
+export async function runTool(name: string, rawArguments: string, context: ToolContext): Promise<string> {
+  let traced = tracedByName.get(name);
+  if (!traced) {
+    traced = traceable(runToolImpl, {
+      name,
+      run_type: "tool",
+      processInputs: (inputs) => {
+        const args = "args" in inputs ? (inputs as { args: unknown[] }).args : [];
+        let parsed: unknown = args[1];
+        if (typeof parsed === "string") {
+          try {
+            parsed = JSON.parse(parsed);
+          } catch {
+            /* keep the raw string */
+          }
+        }
+        return { tool: args[0], arguments: parsed };
+      },
+    });
+    tracedByName.set(name, traced);
+  }
+  return traced(name, rawArguments, context);
+}

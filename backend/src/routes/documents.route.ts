@@ -10,7 +10,11 @@ documentsRouter.get("/:id/download", (req, res) => {
     return;
   }
 
+  const asciiName = file.fileName.replace(/[^\x20-\x7E]/g, "_").replace(/"/g, "");
   res.setHeader("Content-Type", file.mimeType);
-  res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(file.fileName)}"`);
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${asciiName}"; filename*=UTF-8''${encodeURIComponent(file.fileName)}`,
+  );
   res.send(file.buffer);
 });

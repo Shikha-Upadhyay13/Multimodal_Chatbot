@@ -7,7 +7,8 @@ export const createExcelDocTool: ToolDefinition = {
     type: "function",
     function: {
       name: "create_excel_document",
-      description: "Create a new Excel (.xlsx) spreadsheet with one or more sheets of tabular data.",
+      description:
+        "Create a new Excel (.xlsx) spreadsheet. Prefer this whenever the user wants a structured table, comparison grid, or downloadable rows and columns.",
       parameters: {
         type: "object",
         properties: {

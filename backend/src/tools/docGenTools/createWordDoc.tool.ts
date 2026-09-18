@@ -7,7 +7,8 @@ export const createWordDocTool: ToolDefinition = {
     type: "function",
     function: {
       name: "create_word_document",
-      description: "Create a new Word (.docx) document with a title and one or more sections of text.",
+      description:
+        "Create a new Word (.docx) with a title, optional paragraphs, and optional real tables. Use table when the user wants rows and columns.",
       parameters: {
         type: "object",
         properties: {
@@ -21,8 +22,20 @@ export const createWordDocTool: ToolDefinition = {
               properties: {
                 heading: { type: "string", description: "Optional section heading." },
                 paragraphs: { type: "array", items: { type: "string" }, description: "Paragraphs of body text." },
+                table: {
+                  type: "object",
+                  description: "Optional structured table in this section.",
+                  properties: {
+                    caption: { type: "string" },
+                    headers: { type: "array", items: { type: "string" } },
+                    rows: {
+                      type: "array",
+                      items: { type: "array", items: { type: "string" } },
+                    },
+                  },
+                  required: ["headers", "rows"],
+                },
               },
-              required: ["paragraphs"],
             },
           },
         },

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { documentInlineUrl, fetchDocumentPreview, type DocumentPreviewPayload } from "../../api/documentsApi";
 
 export function DocumentPreviewModal({
@@ -35,7 +36,7 @@ export function DocumentPreviewModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
       className="doc-preview-overlay"
       onMouseDown={(e) => {
@@ -58,13 +59,14 @@ export function DocumentPreviewModal({
             </button>
           </div>
         </header>
-        <div className="doc-preview-body">
+        <div className={`doc-preview-body${preview && (preview.kind === "pdf" || preview.kind === "image") ? " is-bleed" : ""}`}>
           {error && <p className="doc-preview-status">{error}</p>}
           {!error && !preview && <p className="doc-preview-status">Loading preview…</p>}
           {preview && <PreviewBody id={id} preview={preview} />}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -74,7 +76,13 @@ function PreviewBody({ id, preview }: { id: string; preview: DocumentPreviewPayl
   }
 
   if (preview.kind === "pdf") {
-    return <iframe className="doc-preview-frame" title={preview.fileName} src={documentInlineUrl(id)} />;
+    return (
+      <iframe
+        className="doc-preview-frame"
+        title={preview.fileName}
+        src={`${documentInlineUrl(id)}#view=FitH`}
+      />
+    );
   }
 
   if (preview.kind === "docx" && preview.html) {

@@ -928,7 +928,8 @@
 }
 
 .doc-preview-panel {
-  width: min(48vw, 720px);
+  width: min(88vw, 1680px);
+  max-width: calc(100vw - 3.5rem);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -985,6 +986,11 @@
   background: var(--bg-composer);
 }
 
+.doc-preview-body.is-bleed {
+  padding: 0;
+  overflow: hidden;
+}
+
 .doc-preview-status {
   color: var(--text-muted);
   margin: 1rem 0;
@@ -993,20 +999,20 @@
 .doc-preview-frame {
   flex: 1;
   width: 100%;
+  height: 100%;
   min-height: 0;
   border: 0;
   background: #fff;
-  border-radius: 8px;
 }
 
 .doc-preview-html {
   flex: 1;
+  min-height: 100%;
   background: #fff;
   color: #1f1f24;
-  padding: 2rem 3rem;
-  border-radius: 10px;
-  line-height: 1.6;
-  font-size: 1.05rem;
+  padding: 2.5rem 8%;
+  line-height: 1.65;
+  font-size: 1.12rem;
 }
 
 .doc-preview-html table {
@@ -1021,8 +1027,7 @@
   padding: 0.4rem 0.6rem;
 }
 
-.chat-image,
-.doc-preview-image {
+.chat-image {
   display: block;
   max-width: 100%;
   height: auto;
@@ -1031,13 +1036,42 @@
 }
 
 .doc-preview-image {
-  margin: 0;
+  display: block;
+  margin: auto;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
+}
+
+.doc-preview-sheets {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 .doc-preview-sheets h3 {
   margin: 0 0 0.6rem;
+  font-size: 1.05rem;
+}
+
+.doc-preview-sheets .md-table-wrap {
+  overflow: visible;
+  margin: 0;
+}
+
+.doc-preview-sheets .md-table {
+  width: max-content;
+  min-width: 100%;
   font-size: 0.95rem;
+}
+
+.doc-preview-sheets .md-table th,
+.doc-preview-sheets .md-table td {
+  white-space: nowrap;
+  padding: 0.55rem 0.85rem;
 }
 
 .download-link:hover {

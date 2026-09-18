@@ -72,10 +72,9 @@ async function runRoundWithRetry(
         if (!choice) continue;
         const delta = choice.delta;
 
-        // Streamed live as it arrives. If this round turns out to end in a tool call
-        // rather than a final answer, a "text-revert" tells the client to retract it —
-        // some models emit chatter alongside a tool call (e.g. "Let me check that...")
-        // before the tool result is even known, and that isn't part of the real answer.
+        // Streamed live as it arrives. If this round ends in a tool call, a "text-revert"
+        // pulls that sentence out of the final answer and keeps it as the visible plan
+        // (the user should watch the work, not get a fake finished reply mid-tool).
         if (delta?.content) {
           assistantText += delta.content;
           onEvent({ type: "text-delta", text: delta.content, round });
@@ -130,9 +129,8 @@ async function runAgentLoopImpl(
     const { assistantText, toolCalls, finishReason } = await runRoundWithRetry(history, onEvent, iteration);
 
     if (finishReason === "tool_calls" && toolCalls.length > 0) {
-      // Kept in history for the model's own context, but retracted from what the user sees
-      // (see comment above) since it already streamed live before we knew this round would
-      // end in a tool call rather than a final answer.
+      // Kept in history for the model. Retracted from the answer bubble so the sentence
+      // can live as the plan in the work trail instead of a half-written reply.
       if (assistantText) onEvent({ type: "text-revert", text: assistantText, round: iteration });
 
       const assistantMessage: Message = {

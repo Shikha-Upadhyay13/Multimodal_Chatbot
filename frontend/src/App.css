@@ -1220,7 +1220,17 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  padding: 0;
   transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.voice-button svg {
+  display: block;
+}
+
+.voice-dots {
+  line-height: 1;
+  font-size: 0.95rem;
 }
 
 .voice-button:hover:not(:disabled) {

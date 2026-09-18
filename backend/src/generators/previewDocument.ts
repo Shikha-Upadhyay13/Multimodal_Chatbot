@@ -2,7 +2,7 @@ import ExcelJS from "exceljs";
 import mammoth from "mammoth";
 import { MIME_TYPES } from "../tools/docGenTools/shared";
 
-export type PreviewKind = "pdf" | "docx" | "xlsx" | "pptx" | "unknown";
+export type PreviewKind = "pdf" | "docx" | "xlsx" | "pptx" | "image" | "unknown";
 
 export interface SheetPreview {
   name: string;
@@ -22,6 +22,7 @@ function kindFromMime(mimeType: string, fileName: string): PreviewKind {
   if (mimeType === MIME_TYPES.docx || fileName.toLowerCase().endsWith(".docx")) return "docx";
   if (mimeType === MIME_TYPES.xlsx || fileName.toLowerCase().endsWith(".xlsx")) return "xlsx";
   if (mimeType === MIME_TYPES.pptx || fileName.toLowerCase().endsWith(".pptx")) return "pptx";
+  if (mimeType.startsWith("image/") || /\.(png|jpe?g|gif|webp)$/i.test(fileName)) return "image";
   return "unknown";
 }
 

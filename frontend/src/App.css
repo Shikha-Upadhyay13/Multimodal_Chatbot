@@ -1021,6 +1021,20 @@
   padding: 0.4rem 0.6rem;
 }
 
+.chat-image,
+.doc-preview-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin: 0.6rem 0;
+}
+
+.doc-preview-image {
+  margin: 0;
+  object-fit: contain;
+}
+
 .doc-preview-sheets h3 {
   margin: 0 0 0.6rem;
   font-size: 0.95rem;

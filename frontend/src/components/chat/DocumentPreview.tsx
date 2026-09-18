@@ -69,6 +69,10 @@ export function DocumentPreviewModal({
 }
 
 function PreviewBody({ id, preview }: { id: string; preview: DocumentPreviewPayload }) {
+  if (preview.kind === "image") {
+    return <img className="doc-preview-image" src={documentInlineUrl(id)} alt={preview.fileName} />;
+  }
+
   if (preview.kind === "pdf") {
     return <iframe className="doc-preview-frame" title={preview.fileName} src={documentInlineUrl(id)} />;
   }

@@ -45,6 +45,9 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
                     </a>
                   );
                 },
+                img: ({ src, alt, ...props }) => (
+                  <img {...props} src={src ? resolveApiUrl(src) : src} alt={alt ?? ""} className="chat-image" />
+                ),
                 p: ({ ...props }) => <p className="md-paragraph" {...props} />,
                 table: ({ ...props }) => (
                   <div className="md-table-wrap">

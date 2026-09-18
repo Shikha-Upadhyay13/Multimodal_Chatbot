@@ -36,14 +36,14 @@ export function DocumentPreviewModal({
   }, [onClose]);
 
   return (
-    <div className="doc-preview-overlay" onClick={onClose} role="presentation">
-      <div
-        className="doc-preview-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Document preview"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div
+      className="doc-preview-overlay"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      role="presentation"
+    >
+      <div className="doc-preview-panel" role="dialog" aria-modal="true" aria-label="Document preview">
         <header className="doc-preview-header">
           <div>
             <div className="doc-preview-kicker">Preview</div>

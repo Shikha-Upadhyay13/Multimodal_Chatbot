@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import fs from "node:fs";
 import path from "node:path";
 import { env } from "./config/env";
 import { chatRouter } from "./routes/chat.route";
@@ -26,12 +27,16 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-// Serve the built frontend so the whole app runs as a single deployed service.
+// Combined deploy serves the Vite build. Locally that folder is absent — skip it
+// so opening the API port does not 500 on a missing frontend/dist/index.html.
 const frontendDist = path.join(__dirname, "..", "..", "frontend", "dist");
-app.use(express.static(frontendDist));
-app.get(/^\/(?!api\/).*/, (_req, res) => {
-  res.sendFile(path.join(frontendDist, "index.html"));
-});
+const frontendIndex = path.join(frontendDist, "index.html");
+if (fs.existsSync(frontendIndex)) {
+  app.use(express.static(frontendDist));
+  app.get(/^\/(?!api\/).*/, (_req, res) => {
+    res.sendFile(frontendIndex);
+  });
+}
 
 async function start() {
   console.log("Warming up local embedding model (first run downloads ~90MB)...");

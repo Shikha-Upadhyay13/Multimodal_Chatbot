@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic Harbor verifier. Reads /workspace/answer.txt and tools.json."""
+"""Deterministic Harbor verifier. Reads answer.txt and tools.json from WORKSPACE."""
 
 from __future__ import annotations
 
@@ -8,8 +8,8 @@ import os
 import sys
 from pathlib import Path
 
-WORKSPACE = Path("/workspace")
-REWARD = Path("/logs/verifier/reward.txt")
+WORKSPACE = Path(os.environ.get("WORKSPACE", "/workspace"))
+REWARD = Path(os.environ.get("REWARD_PATH", "/logs/verifier/reward.txt"))
 
 
 def write_reward(ok: bool) -> None:

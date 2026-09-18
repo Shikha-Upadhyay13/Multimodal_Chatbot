@@ -8,8 +8,8 @@ import os
 import sys
 from pathlib import Path
 
-WORKSPACE = Path("/workspace")
-REWARD = Path("/logs/verifier/reward.txt")
+WORKSPACE = Path(os.environ.get("WORKSPACE", "/workspace"))
+REWARD = Path(os.environ.get("REWARD_PATH", "/logs/verifier/reward.txt"))
 
 
 def write_reward(ok: bool) -> None:

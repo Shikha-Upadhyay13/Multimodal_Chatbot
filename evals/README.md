@@ -43,6 +43,12 @@ $env:PYTHONPATH = (Get-Location).Path
 python scripts\smoke_adapter.py
 ```
 
+Run all six tasks on the live backend (no Docker). Traces still go to LangSmith:
+
+```powershell
+python scripts\run_local_eval.py
+```
+
 Run the suite (from `evals/`, after loading `.env`):
 
 ```powershell

@@ -3,6 +3,7 @@ dist/
 build/
 .env
 evals/.venv/
+evals/jobs/
 __pycache__/
 *.pyc
 *.log

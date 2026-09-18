@@ -648,8 +648,9 @@
 .chat-window {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   min-width: 0;
+  min-height: 0;
   background:
     radial-gradient(ellipse 900px 500px at 20% -10%, rgba(20, 184, 166, 0.1), transparent 60%),
     radial-gradient(ellipse 700px 400px at 100% 0%, rgba(15, 118, 110, 0.08), transparent 55%),
@@ -657,8 +658,18 @@
   position: relative;
 }
 
+.chat-main {
+  flex: 1 1 50%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
 .chat-scroll {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -669,6 +680,15 @@
   min-height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+.chat-window.is-split .chat-column {
+  max-width: 100%;
+  padding: 1.25rem 1.15rem 8rem;
+}
+
+.chat-window.is-split .composer-column {
+  max-width: 100%;
 }
 
 .chat-empty {
@@ -918,24 +938,22 @@
   background: var(--overlay-strong);
 }
 
-.doc-preview-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  justify-content: flex-end;
-  z-index: 60;
+.doc-preview-btn.is-active {
+  background: var(--overlay-strong);
+  border-color: var(--accent);
+  color: var(--accent-hover);
 }
 
 .doc-preview-panel {
-  width: min(88vw, 1680px);
-  max-width: calc(100vw - 3.5rem);
-  height: 100%;
+  flex: 1 1 50%;
+  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--bg-main);
-  border-left: 1px solid var(--border);
-  box-shadow: -16px 0 48px rgba(0, 0, 0, 0.35);
+  margin: 0.65rem 0.65rem 0.65rem 0;
+  background: var(--bg-composer);
+  border: 1px solid var(--border);
+  border-radius: 16px;
   overflow: hidden;
 }
 
@@ -946,6 +964,8 @@
   gap: 1rem;
   padding: 1rem 1.15rem;
   border-bottom: 1px solid var(--border);
+  background: var(--bg-main);
+  flex-shrink: 0;
 }
 
 .doc-preview-kicker {
@@ -1010,9 +1030,9 @@
   min-height: 100%;
   background: #fff;
   color: #1f1f24;
-  padding: 2.5rem 8%;
+  padding: 1.75rem 1.5rem;
   line-height: 1.65;
-  font-size: 1.12rem;
+  font-size: 1.05rem;
 }
 
 .doc-preview-html table {

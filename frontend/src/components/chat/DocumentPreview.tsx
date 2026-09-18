@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { documentInlineUrl, fetchDocumentPreview, type DocumentPreviewPayload } from "../../api/documentsApi";
 
-export function DocumentPreviewModal({
+export function DocumentPreviewPanel({
   id,
   downloadHref,
   onClose,
@@ -16,6 +15,8 @@ export function DocumentPreviewModal({
 
   useEffect(() => {
     let cancelled = false;
+    setPreview(null);
+    setError(null);
     fetchDocumentPreview(id)
       .then((data) => {
         if (!cancelled) setPreview(data);
@@ -36,37 +37,28 @@ export function DocumentPreviewModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  return createPortal(
-    <div
-      className="doc-preview-overlay"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      role="presentation"
-    >
-      <div className="doc-preview-panel" role="dialog" aria-modal="true" aria-label="Document preview">
-        <header className="doc-preview-header">
-          <div>
-            <div className="doc-preview-kicker">Preview</div>
-            <h2>{preview?.fileName ?? "Document"}</h2>
-          </div>
-          <div className="doc-preview-header-actions">
-            <a className="doc-download-btn" href={downloadHref} download>
-              Download
-            </a>
-            <button type="button" className="doc-preview-close" onClick={onClose}>
-              Close
-            </button>
-          </div>
-        </header>
-        <div className={`doc-preview-body${preview && (preview.kind === "pdf" || preview.kind === "image") ? " is-bleed" : ""}`}>
-          {error && <p className="doc-preview-status">{error}</p>}
-          {!error && !preview && <p className="doc-preview-status">Loading preview…</p>}
-          {preview && <PreviewBody id={id} preview={preview} />}
+  return (
+    <aside className="doc-preview-panel" aria-label="Document preview">
+      <header className="doc-preview-header">
+        <div>
+          <div className="doc-preview-kicker">Preview</div>
+          <h2>{preview?.fileName ?? "Document"}</h2>
         </div>
+        <div className="doc-preview-header-actions">
+          <a className="doc-download-btn" href={downloadHref} download>
+            Download
+          </a>
+          <button type="button" className="doc-preview-close" onClick={onClose}>
+            Close
+          </button>
+        </div>
+      </header>
+      <div className={`doc-preview-body${preview && (preview.kind === "pdf" || preview.kind === "image") ? " is-bleed" : ""}`}>
+        {error && <p className="doc-preview-status">{error}</p>}
+        {!error && !preview && <p className="doc-preview-status">Loading preview…</p>}
+        {preview && <PreviewBody id={id} preview={preview} />}
       </div>
-    </div>,
-    document.body,
+    </aside>
   );
 }
 

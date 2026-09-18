@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useChatStream } from "../../hooks/useChatStream";
 import { MessageBubble } from "./MessageBubble";
+import { DocumentPreviewPanel } from "./DocumentPreview";
 import { FileUploadButton } from "../upload/FileUploadButton";
 import { UploadedDocsList } from "../upload/UploadedDocsList";
 import { listDocuments, uploadDocument, type UploadedDoc } from "../../api/uploadApi";
@@ -62,6 +63,7 @@ export function ChatWindow({
   );
   const [input, setInput] = useState("");
   const [docs, setDocs] = useState<UploadedDoc[]>([]);
+  const [preview, setPreview] = useState<{ id: string; href: string } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { speak } = useSpeechSynthesis();
@@ -97,7 +99,7 @@ export function ChatWindow({
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const target = e.target as HTMLElement | null;
       if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
-      if (document.querySelector(".settings-overlay, .doc-preview-overlay")) return;
+      if (document.querySelector(".settings-overlay")) return;
       if (e.key.length === 1 || e.key === "Backspace") focusComposer();
     };
     window.addEventListener("keydown", onKeyDown);
@@ -134,60 +136,83 @@ export function ChatWindow({
     if (loadSettings().autoSpeakVoiceReplies) speak(finalText);
   };
 
+  const handlePreview = (doc: { id: string; href: string }) => {
+    setPreview((current) => (current?.id === doc.id ? null : doc));
+  };
+
   return (
-    <div className="chat-window">
-      <div className="chat-scroll">
-        <div className="chat-column">
-          <UploadedDocsList docs={docs} />
-          {messages.length === 0 && extraMessages.length === 0 ? (
-            <div className="chat-empty">
-              <h1>What can I help with?</h1>
-              <p>Ask anything, upload a document and ask about it, or press the mic to talk.</p>
-              <div className="suggestion-grid">
-                {SUGGESTIONS.map((s) => (
-                  <button key={s.label} type="button" className="suggestion-chip" onClick={() => void send(s.prompt)}>
-                    <span className="suggestion-icon">{s.icon}</span>
-                    {s.label}
-                  </button>
-                ))}
+    <div className={`chat-window${preview ? " is-split" : ""}`}>
+      <div className="chat-main">
+        <div className="chat-scroll">
+          <div className="chat-column">
+            <UploadedDocsList docs={docs} />
+            {messages.length === 0 && extraMessages.length === 0 ? (
+              <div className="chat-empty">
+                <h1>What can I help with?</h1>
+                <p>Ask anything, upload a document and ask about it, or press the mic to talk.</p>
+                <div className="suggestion-grid">
+                  {SUGGESTIONS.map((s) => (
+                    <button key={s.label} type="button" className="suggestion-chip" onClick={() => void send(s.prompt)}>
+                      <span className="suggestion-icon">{s.icon}</span>
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
               </div>
+            ) : (
+              <div className="chat-messages">
+                {messages.map((m) => (
+                  <MessageBubble
+                    key={m.id}
+                    message={m}
+                    onPreview={handlePreview}
+                    activePreviewId={preview?.id}
+                  />
+                ))}
+                {extraMessages.map((m) => (
+                  <MessageBubble
+                    key={m.id}
+                    message={m}
+                    onPreview={handlePreview}
+                    activePreviewId={preview?.id}
+                  />
+                ))}
+                <div ref={bottomRef} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="composer-wrapper">
+          {topBanner}
+          <form className="composer-column" onSubmit={handleSubmit}>
+            <div className="composer-pill">
+              <FileUploadButton uploadFn={uploadFn} onUploaded={(doc) => setDocs((prev) => [...prev, doc])} />
+              <input
+                ref={inputRef}
+                autoFocus
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  onComposerActivity?.();
+                }}
+                placeholder="Message your assistant..."
+              />
+              <VoiceButton onTranscript={(text) => void handleVoiceTranscript(text)} />
+              <button type="submit" className="send-button" disabled={isStreaming || !input.trim()}>
+                ↑
+              </button>
             </div>
-          ) : (
-            <div className="chat-messages">
-              {messages.map((m) => (
-                <MessageBubble key={m.id} message={m} />
-              ))}
-              {extraMessages.map((m) => (
-                <MessageBubble key={m.id} message={m} />
-              ))}
-              <div ref={bottomRef} />
-            </div>
-          )}
+          </form>
         </div>
       </div>
-
-      <div className="composer-wrapper">
-        {topBanner}
-        <form className="composer-column" onSubmit={handleSubmit}>
-          <div className="composer-pill">
-            <FileUploadButton uploadFn={uploadFn} onUploaded={(doc) => setDocs((prev) => [...prev, doc])} />
-            <input
-              ref={inputRef}
-              autoFocus
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value);
-                onComposerActivity?.();
-              }}
-              placeholder="Message your assistant..."
-            />
-            <VoiceButton onTranscript={(text) => void handleVoiceTranscript(text)} />
-            <button type="submit" className="send-button" disabled={isStreaming || !input.trim()}>
-              ↑
-            </button>
-          </div>
-        </form>
-      </div>
+      {preview && (
+        <DocumentPreviewPanel
+          id={preview.id}
+          downloadHref={preview.href}
+          onClose={() => setPreview(null)}
+        />
+      )}
     </div>
   );
 }

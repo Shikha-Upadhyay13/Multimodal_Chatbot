@@ -1,4 +1,3 @@
-import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -9,11 +8,18 @@ import {
   resolveApiUrl,
 } from "../../api/base";
 import type { ChatMessage } from "../../types/chat.types";
-import { DocumentPreviewModal } from "./DocumentPreview";
 import { ToolCallBadge } from "./ToolCallBadge";
 import { ReasoningTimeline } from "./ReasoningTimeline";
 
-export function MessageBubble({ message }: { message: ChatMessage }) {
+export function MessageBubble({
+  message,
+  onPreview,
+  activePreviewId,
+}: {
+  message: ChatMessage;
+  onPreview?: (doc: { id: string; href: string }) => void;
+  activePreviewId?: string | null;
+}) {
   const isUser = message.role === "user";
 
   return (
@@ -59,7 +65,12 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
               {linkifyDocumentUrls(message.text)}
             </ReactMarkdown>
             {documentDownloadUrls(message.text).map((path) => (
-              <DocumentActions key={path} path={path} />
+              <DocumentActions
+                key={path}
+                path={path}
+                onPreview={onPreview}
+                activePreviewId={activePreviewId}
+              />
             ))}
           </>
         ) : (
@@ -78,22 +89,33 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
   );
 }
 
-function DocumentActions({ path }: { path: string }) {
-  const [open, setOpen] = useState(false);
+function DocumentActions({
+  path,
+  onPreview,
+  activePreviewId,
+}: {
+  path: string;
+  onPreview?: (doc: { id: string; href: string }) => void;
+  activePreviewId?: string | null;
+}) {
   const id = documentIdFromDownloadPath(path);
   const href = resolveApiUrl(path);
+  const isActive = Boolean(id && id === activePreviewId);
 
   return (
     <div className="doc-actions">
-      {id && (
-        <button type="button" className="doc-preview-btn" onClick={() => setOpen(true)}>
-          Preview
+      {id && onPreview && (
+        <button
+          type="button"
+          className={`doc-preview-btn${isActive ? " is-active" : ""}`}
+          onClick={() => onPreview({ id, href })}
+        >
+          {isActive ? "Hide preview" : "Preview"}
         </button>
       )}
       <a className="doc-download-btn" href={href} download>
         Download file
       </a>
-      {open && id && <DocumentPreviewModal id={id} downloadHref={href} onClose={() => setOpen(false)} />}
     </div>
   );
 }

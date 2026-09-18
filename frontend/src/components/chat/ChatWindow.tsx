@@ -63,7 +63,12 @@ export function ChatWindow({
   const [input, setInput] = useState("");
   const [docs, setDocs] = useState<UploadedDoc[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { speak } = useSpeechSynthesis();
+
+  const focusComposer = () => {
+    inputRef.current?.focus();
+  };
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -78,6 +83,26 @@ export function ChatWindow({
       .then(setDocs)
       .catch(() => {});
   }, [listDocsFn]);
+
+  useEffect(() => {
+    focusComposer();
+  }, [conversationId]);
+
+  useEffect(() => {
+    if (!isStreaming) focusComposer();
+  }, [isStreaming]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      if (document.querySelector(".settings-overlay")) return;
+      if (e.key.length === 1 || e.key === "Backspace") focusComposer();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   /** Wraps sendMessage so a conversation's very first exchange also triggers a title,
    *  regardless of whether it was typed, voice, or a suggestion chip. */
@@ -100,6 +125,7 @@ export function ChatWindow({
     if (!text || isStreaming) return;
     setInput("");
     void send(text);
+    focusComposer();
   };
 
   const handleVoiceTranscript = async (text: string) => {
@@ -146,13 +172,14 @@ export function ChatWindow({
           <div className="composer-pill">
             <FileUploadButton uploadFn={uploadFn} onUploaded={(doc) => setDocs((prev) => [...prev, doc])} />
             <input
+              ref={inputRef}
+              autoFocus
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
                 onComposerActivity?.();
               }}
               placeholder="Message your assistant..."
-              disabled={isStreaming}
             />
             <VoiceButton onTranscript={(text) => void handleVoiceTranscript(text)} />
             <button type="submit" className="send-button" disabled={isStreaming || !input.trim()}>

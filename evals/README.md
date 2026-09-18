@@ -49,6 +49,12 @@ Run all six tasks on the live backend (no Docker). Traces still go to LangSmith:
 python scripts\run_local_eval.py
 ```
 
+Push those pass/fail rows into a LangSmith dataset + experiment (`tool-use`):
+
+```powershell
+python scripts\upload_local_experiment.py
+```
+
 Run the suite (from `evals/`, after loading `.env`):
 
 ```powershell

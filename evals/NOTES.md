@@ -16,3 +16,7 @@ Ran the same six task folders with `evals/scripts/run_local_eval.py` against the
 | edit-excel | create then edit_excel_document | PASS | create_excel_document, edit_excel_document |
 
 **6/6 passed.**
+
+Traces for those chats are in the LangSmith project `multimodal-chatbot`. To also get a dataset + experiment table, run `python scripts/upload_local_experiment.py` (needs `LANGSMITH_API_KEY` in `backend/.env` or `evals/.env`).
+
+Official `harbor run --env langsmith` is still the next optional step: it needs a LangSmith sandbox (no local Docker) and cannot call `localhost:3001`, so it is for the hello-world pipe, not this chatbot.

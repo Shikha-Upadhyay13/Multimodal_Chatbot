@@ -40,17 +40,28 @@ export function DocumentPreviewPanel({
   return (
     <aside className="doc-preview-panel" aria-label="Document preview">
       <header className="doc-preview-header">
-        <div>
-          <div className="doc-preview-kicker">Preview</div>
-          <h2>{preview?.fileName ?? "Document"}</h2>
+        <div className="doc-preview-title">
+          <button type="button" className="doc-preview-collapse" onClick={onClose} aria-label="Close preview">
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <path
+                d="M10.2 2.7 5 8l5.2 5.3"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <div>
+            <div className="doc-preview-kicker">Preview</div>
+            <h2>{preview?.fileName ?? "Document"}</h2>
+          </div>
         </div>
         <div className="doc-preview-header-actions">
           <a className="doc-download-btn" href={downloadHref} download>
             Download
           </a>
-          <button type="button" className="doc-preview-close" onClick={onClose}>
-            Close
-          </button>
         </div>
       </header>
       <div className={`doc-preview-body${preview && (preview.kind === "pdf" || preview.kind === "image") ? " is-bleed" : ""}`}>

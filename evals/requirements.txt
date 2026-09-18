@@ -1,0 +1,2 @@
+harbor[langsmith]==0.23.0
+python-dotenv>=1.0.0
